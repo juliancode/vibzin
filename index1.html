@@ -3,8 +3,8 @@
 	<title>Chat with socket.io and node.js</title>
 	<style>
 		#chat{
-			height:500px;
-			overflow: scroll;
+			height: 500px;
+			overflow-y: scroll;
 		}
 		#contentWrap{
 			display: none;
@@ -282,6 +282,8 @@
 					br = document.createElement("br");
 				$chat.append(document.createTextNode(str));
 				$chat.append(br);
+				console.log($chat.height())
+				$chat.scrollTop(document.getElementById("chat").scrollHeight);
 			});
 
 			socket.on('pause video', function() {
