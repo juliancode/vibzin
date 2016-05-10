@@ -1,0 +1,306 @@
+<html>
+<head>
+	<title>Chat with socket.io and node.js</title>
+	<style>
+		#chat{
+			height:500px;
+		}
+		#contentWrap{
+			display: none;
+		}
+		#chatWrap{
+			float: left;
+			border: 1px #000 solid;
+		}
+		.error{
+			color: red;
+		}
+		.whisper{
+			color: gray;
+			font-style: italic;
+		}
+		.resultThumbnails {
+			display: inline;
+			cursor: pointer;
+			padding: 1rem;
+		}
+
+		#search {
+			width: 750px;
+			font-size: 1.5rem;
+		}
+	</style>
+
+</head>
+<body>
+	<div id="nickWrap">
+		<p>Enter a username:</p>
+		<p id="nickError"></p>
+		<form id="setNick">
+			<input size="35" id="nickname"></input>
+			<input type="submit"></input>
+		</form>
+	</div>
+
+	<div id="contentWrap">
+		<form id="searchForm">
+			<input type="text" id="search" placeholder="Search for a video or enter URL..."></input>
+			<input type="submit">
+		</form>
+		<div id="results">
+			
+		</div>
+		<div id="player">
+		</div>
+		<div id="chatWrap">
+			<div id="chat"></div>
+			<form id="send-message" autocomplete="off">
+				<input size="35" id="message"></input>
+				<input type="submit"></input>
+			</form>
+		</div>
+		<div id="users"></div>
+	</div>
+	
+	<script src="http://code.jquery.com/jquery-latest.min.js"></script>
+	<script src="/socket.io/socket.io.js"></script>
+	<script src="https://www.youtube.com/iframe_api"></script>
+	<script> 
+
+	var socket = io.connect();
+	
+	//YouTube iFrame Player API
+	// 2. This code loads the IFrame Player API code asynchronously.
+	      var tag = document.createElement('script');
+	      tag.src = "https://www.youtube.com/iframe_api";
+	      var firstScriptTag = document.getElementsByTagName('script')[0];
+	      firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+	      // 3. This function creates an <iframe> (and YouTube player)
+	      //    after the API code downloads.
+	    	var player = undefined,
+	    		cue = [];
+
+	      var playerStates = {
+	      	unstarted: -1, 
+	      	ended: 0,
+	      	playing: 1,
+	      	paused: 2,
+	      	buffering: 3,
+	      	videoCued: 5
+	      }
+
+	    function onYouTubeIframeAPIReady() {
+	      	player = new YT.Player('player', {
+				height: '390',
+				width: '640',
+				videoId: cue[0],
+				playerVars: {
+					'controls': 0,
+					'rel': 0,
+					'disablekb': 1,
+					'modestbranding': 1
+				},
+				events: {
+				'onReady': onPlayerReady,
+				'onStateChange': onPlayerStateChange
+				}
+			});
+	 	}
+
+	    // 4. The API will call this function when the video player is ready.
+	    function onPlayerReady(event) {
+	      	// setTimeout(handler, 3000);
+		}
+
+	      // 5. The API calls this function when the player's state changes.
+	      //    The function indicates that when playing a video (state=1),
+	      //    the player should play for six seconds and then stop.
+
+	      // Pause, change time
+
+	function onPlayerStateChange(event) {
+
+		switch(player.getPlayerState()) {
+	    	case -1:
+	      		console.log("unstarted")
+	      		break;
+	      	case 0:
+	      		console.log("ended")
+	      		socket.emit('play next video', cue)
+	      		break;
+	      	case 1:
+	      		console.log("play")
+	      		socket.emit('play video')
+	      		break;
+	      	case 2:
+	      		console.log("pause")
+	      		socket.emit('pause video')
+	      		break;
+	      	case 3:
+	      		console.log("buffering")
+	      		break;
+	      	case 5:
+	      		console.log("video cued")
+	    }
+	}
+	      
+	function handler() {
+		console.log("Handler called - client side cue", cue)
+		if (player && cue.length > 0)  {
+			var id = cue.shift()
+			console.log(id)
+      		player.loadVideoById(id)
+			player.playVideo()
+			console.log("After cue shift - client side cue", cue)
+		}
+		else {
+			player.stopVideo();
+			console.log("No videos in client side cue")
+		}
+	}
+
+	// function playVideoNow(id) {
+	// 	player.loadVideoById(id)
+	// 	player.playVideo()
+	// }
+
+	function addToCue(id, callback) {
+		cue.push(id)
+		if (callback)
+			callback();
+		else
+			return
+	}
+
+	function stopVideo() {
+		player.stopVideo()
+	} 
+
+	function getVideoDuration() {
+		return player.getDuration()
+	}
+	
+		jQuery(function($) {
+			
+			var $nickForm = $('#setNick'),
+				$nickError = $('#nickError'),
+				$nickBox = $('#nickname'),
+				$users = $('#users'),
+				$messageForm = $('#send-message'),
+				$messageBox = $('#message'),
+				$chat = $('#chat'),
+				$player = $('#player'),
+				$searchForm = $('#searchForm'),
+				$searchQuery = $('#search'),
+				$results = $('#results'),
+				$resultVideo = $('.resultThumbnails');
+
+			$('#emptyWaitingList').click(function() {
+				dropDb();
+			});
+
+			$searchForm.submit(function(e) {
+				e.preventDefault();
+				$.ajax({
+					url: 'https://www.googleapis.com/youtube/v3/search?q=' + $searchQuery.val() + '&part=snippet&key=AIzaSyCt8JA0ZFnQ2F9qBBVN1ZyjMxxz5pMEthc'
+				}).done(function(data) {
+					$results.html('');
+					data.items.map(function(video) {
+						if (video.id.videoId === undefined) {
+							return
+						}
+						// console.log(video.id.videoId); videoID
+						// console.log(video.snippet.thumbnails.default.url); videoThumbnail
+						$results.append('<img class="resultThumbnails" id="' + video.id.videoId + '"src="' + video.snippet.thumbnails.default.url + '" title="' + video.snippet.title + ' ">')
+					});
+				})
+			});
+
+			$results.on('click', '.resultThumbnails', function() {
+				var videoId = this.id,
+					videoTitle = this.title;
+				socket.emit('new video', {id: videoId, title: videoTitle})
+			});
+
+			$nickForm.submit(function(e) {
+				e.preventDefault();
+				handler();
+				socket.emit('new user', $nickBox.val(), function(data) {
+					if (data) {
+						$('#nickWrap').hide();
+						$('#contentWrap').show();
+					} else {
+						$nickError.html('That username is already taken!  Try again.');
+					}
+				});
+				$nickBox.val('');
+			});
+
+			socket.on('user join', function(data) {
+				$chat.append(data.nick + ' has entered the room</br>')
+			});
+
+			socket.on('user leave', function(data) {
+				$chat.append(data.nick + ' has left the room</br>')
+			});			
+			
+			socket.on('usernames', function(data) {
+				var html = '';
+				for(i=0; i < data.length; i++) {
+					html += data[i] + '<br/>'
+				}
+				$users.html(html);
+			});
+			
+			$messageForm.submit(function(e) {
+				e.preventDefault();
+				socket.emit('send message', $messageBox.val(), function(data) {
+					$chat.append('<span class="error">' + data + "</span><br/>");
+				});
+				$messageBox.val('');
+			});
+
+			socket.on('change video', function(data) {
+				if (!cue.length ||
+					!player.getPlayerState() === 1 || 
+					!player.getPlayerState() === 2 || 
+					player.getPlayerState() === 0 || 
+					// player.getPlayerState() === -1 ||
+					player.getPlayerState() === 5) {
+					addToCue(data.id, handler)
+					console.log(cue)
+				} else {
+					addToCue(data.id)
+				}
+				$chat.append('<span class="whisper"><b>' + data.nick + '</b> added <b>' + data.title + '</b> to the cue</span><br/>');
+			});
+			
+			socket.on('new message', function(data) {
+				var str = (data.nick + ': ' + data.msg),
+					br = document.createElement("br");
+				$chat.append(document.createTextNode(str));
+				$chat.append(br);
+			});
+
+			socket.on('pause video', function() {
+				player.pauseVideo();
+				console.log("pause video serverside")
+			});
+
+			socket.on('play video', function() {
+				player.playVideo();
+				console.log("play video serverside")
+			});
+
+			socket.on('send cue', function(data) {
+				cue = data.cue
+			});
+
+			socket.on('next video', function() {
+				handler();
+			});
+		});
+	</script>
+</body>
+</html>

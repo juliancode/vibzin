@@ -1,0 +1,7 @@
+- sort out first video playing twice
+- sort out the spamming of play/pause crashing the site
+- allow only 3 videos per person in the cue at a time
+- sort out when pressing videos fast 2nd one gets autoplayed
+
+
+play next video callback isnt working - removes video after calling getCueFromDb...
