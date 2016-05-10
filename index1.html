@@ -5,6 +5,7 @@
 		#chat{
 			height: 500px;
 			overflow-y: scroll;
+			padding-bottom: 10px;
 		}
 		#contentWrap{
 			display: none;
@@ -240,10 +241,12 @@
 
 			socket.on('user join', function(data) {
 				$chat.append(data.nick + ' has entered the room</br>')
+				$chat.scrollTop(document.getElementById("chat").scrollHeight);
 			});
 
 			socket.on('user leave', function(data) {
 				$chat.append(data.nick + ' has left the room</br>')
+				$chat.scrollTop(document.getElementById("chat").scrollHeight);
 			});			
 			
 			socket.on('usernames', function(data) {
@@ -275,6 +278,7 @@
 					addToCue(data.id)
 				}
 				$chat.append('<span class="whisper"><b>' + data.nick + '</b> added <b>' + data.title + '</b> to the cue</span><br/>');
+				$chat.scrollTop(document.getElementById("chat").scrollHeight);
 			});
 			
 			socket.on('new message', function(data) {
@@ -282,7 +286,6 @@
 					br = document.createElement("br");
 				$chat.append(document.createTextNode(str));
 				$chat.append(br);
-				console.log($chat.height())
 				$chat.scrollTop(document.getElementById("chat").scrollHeight);
 			});
 
