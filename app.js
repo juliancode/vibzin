@@ -103,10 +103,13 @@ function getCueFromDb(callback) {
 	});	
 }
 
-function dropDb() {
+function dropDb(callback) {
 	Video.find({}).remove(function(err, data) {
 		if (err)
 			console.log(err)
+		if (callback)
+			callback();
+		else return
 	});
 }
 

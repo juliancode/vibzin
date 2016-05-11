@@ -1,35 +1,135 @@
 <html>
 <head>
 	<title>Chat with socket.io and node.js</title>
+	<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
 	<style>
+		*, *:before, *:after {
+			box-sizing: border-box;
+			margin: 0;
+			padding: 0;
+		}
+
 		#chat{
-			height: 500px;
-			overflow-y: scroll;
+			height: 300px;
+			overflow-y: auto;
+			overflow-x: hidden;
+			padding: 0 5px;
 			padding-bottom: 10px;
+			font-family: Arial;
 		}
-		#contentWrap{
+
+		#contentWrap {
+			width: 720px;
+			margin: 0 auto;
 			display: none;
+			flex-direction: column;
 		}
+
 		#chatWrap{
-			float: left;
-			border: 1px #000 solid;
+			width: 520px;
 		}
+
+		#users {
+			width: 200px;
+			padding: 0 10px;
+			border-left: 1px solid #aaa;
+			font-family: Arial;
+		}
+
 		.error{
 			color: red;
 		}
+
 		.whisper{
 			color: gray;
 			font-style: italic;
 		}
-		.resultThumbnails {
-			display: inline;
-			cursor: pointer;
-			padding: 1rem;
+
+		#send-message {
+			overflow: hidden;
+			white-space: nowrap;
+		}
+
+		#message {
+			width: 720px;
+			height: 50px;
+			padding: 10px;
+			border: 1px solid #aaa;
+			border-top: 0;
+		}
+
+		button.send {
+			height: 50px;
+			width: 100px;
+			margin-left: -104px;
 		}
 
 		#search {
-			width: 750px;
-			font-size: 1.5rem;
+			width: 720px;
+			height: 50px;
+			padding: 15px;
+			font-size: 17pt;
+			border: 1px solid #ccc;
+		}
+
+		#searchForm {
+			width: 720px;
+			overflow: hidden;
+			margin: 10px 0;
+			white-space: nowrap;
+		}
+
+		button.icon {
+			width: 50px;
+			height: 50px;
+			margin-left: -54px;
+			position: relative;
+			top: 2px;
+			padding: 15px;
+			border: 1px solid #ccc;
+			font-size: 17pt;
+		}
+
+		#results {
+			height: 100%;
+			width: 370px;
+			position: absolute;
+			top: 0;
+			left: 0;
+			transform: translateX(-100%);
+			transition: all 0.25s;
+			background: #222;
+			overflow-y: auto;
+		}
+
+		.resultThumbnails {
+			/*display: inline;*/
+		}
+
+		.resultContainer {
+			padding: 25px;
+			padding-top: 20px;
+			padding-bottom: 40px;
+			cursor: pointer;
+		}
+
+		.resultContainer:hover {
+			background: #444;
+		}
+
+
+
+		h3 {
+			font-family: Arial, sans;
+			color: #fff;
+			text-align: center;
+			margin-bottom: 10px;
+		}
+
+		#mainWrap {
+			width: 720px;
+			display: flex;
+			border: 1px solid #aaa;
 		}
 	</style>
 
@@ -47,21 +147,23 @@
 	<div id="contentWrap">
 		<form id="searchForm">
 			<input type="text" id="search" placeholder="Search for a video or enter URL..."></input>
-			<input type="submit">
+			<button class="icon"><i class="fa fa-search"></i></button>
 		</form>
 		<div id="results">
 			
 		</div>
 		<div id="player">
 		</div>
-		<div id="chatWrap">
-			<div id="chat"></div>
-			<form id="send-message" autocomplete="off">
-				<input size="35" id="message"></input>
-				<input type="submit"></input>
-			</form>
+		<div id="mainWrap">
+			<div id="chatWrap">
+				<div id="chat"></div>
+			</div>
+			<div id="users"></div>	
 		</div>
-		<div id="users"></div>
+		<form id="send-message" autocomplete="off">
+			<input size="35" id="message"></input>
+			<button class="send">Send</button>
+		</form>
 	</div>
 	
 	<script src="http://code.jquery.com/jquery-latest.min.js"></script>
@@ -95,7 +197,7 @@
 	    function onYouTubeIframeAPIReady() {
 	      	player = new YT.Player('player', {
 				height: '390',
-				width: '640',
+				width: '720',
 				videoId: cue[0],
 				playerVars: {
 					'controls': 0,
@@ -196,11 +298,10 @@
 				$searchForm = $('#searchForm'),
 				$searchQuery = $('#search'),
 				$results = $('#results'),
-				$resultVideo = $('.resultThumbnails');
+				$resultVideo = $('.resultThumbnails'),
+				resultsWindow = false;
 
-			$('#emptyWaitingList').click(function() {
-				dropDb();
-			});
+			// Ajax calls to YouTube API
 
 			$searchForm.submit(function(e) {
 				e.preventDefault();
@@ -214,24 +315,41 @@
 						}
 						// console.log(video.id.videoId); videoID
 						// console.log(video.snippet.thumbnails.default.url); videoThumbnail
-						$results.append('<img class="resultThumbnails" id="' + video.id.videoId + '"src="' + video.snippet.thumbnails.default.url + '" title="' + video.snippet.title + ' ">')
+						$results.append('<div class="resultContainer" id="' + video.id.videoId + '" title="' + video.snippet.title + '"><h3>' + video.snippet.title + '</h3><img class="resultThumbnails" src="' + video.snippet.thumbnails.medium.url + '"></div>');
+						$results.css("transform", "translateX(0)");
+						resultsWindow = true;
 					});
 				})
 			});
 
-			$results.on('click', '.resultThumbnails', function() {
+			// Possibly bad performance having event handler on whole document - change?
+
+			$(document).on('click', function() {
+				console.log(resultsWindow)
+				if (resultsWindow)
+					$results.css("transform", "translateX(-100%)");
+					resultsWindow = false
+				return
+			});
+
+			// When result video is clicked
+
+			$results.on('click', '.resultContainer', function() {
 				var videoId = this.id,
 					videoTitle = this.title;
-				socket.emit('new video', {id: videoId, title: videoTitle})
+				socket.emit('new video', {id: videoId, title: videoTitle});
+				$results.css("transform", "translateX(-100%)");
 			});
+
+			// When nick form is submitted
 
 			$nickForm.submit(function(e) {
 				e.preventDefault();
 				handler();
 				socket.emit('new user', $nickBox.val(), function(data) {
 					if (data) {
-						$('#nickWrap').hide();
-						$('#contentWrap').show();
+						$('#nickWrap').css("display", "none");
+						$('#contentWrap').css("display", "flex");
 					} else {
 						$nickError.html('That username is already taken!  Try again.');
 					}
@@ -245,12 +363,13 @@
 			});
 
 			socket.on('user leave', function(data) {
-				$chat.append(data.nick + ' has left the room</br>')
+				$chat.append(data.nick + ' has left the room</br>');
 				$chat.scrollTop(document.getElementById("chat").scrollHeight);
 			});			
 			
 			socket.on('usernames', function(data) {
 				var html = '';
+				console.log(data)
 				for(i=0; i < data.length; i++) {
 					html += data[i] + '<br/>'
 				}
