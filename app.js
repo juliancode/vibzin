@@ -2,7 +2,8 @@ var express = require('express'),
 	app = express(),
 	server = require('http').createServer(app),
 	io = require('socket.io').listen(server),
-	mongoose = require("mongoose");
+	mongoose = require("mongoose"),
+	Promise = require("bluebird"),
 	Video = require('./js/db').Video,
 	users = {},
 	cue = [],
@@ -31,27 +32,20 @@ io.on('connection', function(socket) {
 		}
 	});
 
-	socket.on('disconnect', function(data){
+	socket.on('disconnect', function(data) {
 		if(!socket.nickname) return;
 		delete users[socket.nickname];
 		updateNicknames();
 		socket.broadcast.emit('user leave', {nick: socket.nickname});
 	});
 
-	// socket.on('new video', function(data, callback){
-	// 	addToCue(data.id, socket.nickname, getCueFromDb)
-	// 	io.sockets.emit('change video', {id: data.id, title: data.title, nick: socket.nickname});
-	// });
-
-	socket.on('new video', function(data, callback){
-		addToCue(data.id, socket.nickname, getCueFromDb(function() {
+	socket.on('new video', function(data, callback) {
+		addToCue(data.id, socket.nickname, getCueFromDb)
 			io.sockets.emit('change video', {id: data.id, title: data.title, nick: socket.nickname});
-		}));
-	});
+	})
 
 	socket.on('play next video', function(data) {
 		removeVideo(cue[0], getCueFromDb(function() {
-			console.log("get cue from db callback called")
 			io.sockets.emit('next video');
 		}));	
 	});
@@ -77,48 +71,36 @@ function updateNicknames(){
 	io.sockets.emit('usernames', Object.keys(users));
 }
 
-function getCueFromDb(callback) {
-	console.log("getCueFromDb()", cue)
+var getCueFromDb = function(callback) {
 	Video.find({}).exec(function(err, videos) {
 			if (err) {
-				console.log(err)
+				return err;
 			}
 			if (videos.length) {
-				console.log("Videos found in db pushed to client")
 				cue.length = 0 // empty array
 				videos.forEach(function(video) {
 					cue.push(video.id) // push all the videos from db into cue array
 				});
-				console.log("Sending this cue to client", cue)
 				io.sockets.emit('send cue', {cue: cue});
+				console.log("Get cue from db called", cue);
+				if (callback)
+					callback();
+				else
+					return
 			}
 			else {
 				io.sockets.emit('send cue', {cue: cue});
-				console.log("No more videos in database!")
+				console.log("Get cue from db no videos left", cue)
 			}
-		if (callback)
-			callback();
-		else 
-			return
-	});	
+	})
 }
 
-function dropDb(callback) {
+var dropDb = function(callback) {
 	Video.find({}).remove(function(err, data) {
 		if (err)
 			console.log(err)
-		if (callback)
-			callback();
-		else return
-	});
-}
-
-function removeVideo(id, callback) {
-	Video.find({'id' : id}).remove(function(err, data) {
-		if (err)
-			console.log(err)
-		console.log("Removed video", id)
-		cue.shift();
+		else 
+			console.log(data)
 		if (callback)
 			callback();
 		else
@@ -126,17 +108,34 @@ function removeVideo(id, callback) {
 	});
 }
 
-function addToCue(id, user, callback) {
-	console.log("Add to cue called", cue)
+var removeVideo = function(id) {
+	Video.find({'id' : id}).remove(function(err, data) {
+		if (err)
+			return (err)
+		else {
+		console.log("Removed video", id)
+		cue.shift();
+		return true
+		}
+	});
+}
+
+var addToCue = function(id, user, callback) {
 	var video = new Video();
 	video.id = id;
 	video.user = user;
 	video.save(function(err, data){
 		if (err)
 			console.log(err)
-	})
-	if (callback)
-		callback()
-	else 
-		return
+		else {
+			console.log(data)
+			if (callback) {
+				callback();
+			}
+			else {
+				console.log("No callback in addToCue")
+				return
+			}
+		}
+	});
 }
