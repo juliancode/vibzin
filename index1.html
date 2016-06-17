@@ -149,7 +149,7 @@
 
 	<div id="contentWrap">
 		<form id="searchForm">
-			<input type="text" id="search" placeholder="Search for a video or enter URL..."></input>
+			<input type="text" id="search" autocomplete="off" placeholder="Search for a video or enter URL..."></input>
 			<button class="icon"><i class="fa fa-search"></i></button>
 		</form>
 		<div id="results">
@@ -167,13 +167,16 @@
 			<input size="35" id="message"></input>
 			<button class="send">Send</button>
 		</form>
+		<button class="skip">Skip >></button>
 	</div>
+
+
 	
 	<script src="http://code.jquery.com/jquery-latest.min.js"></script>
 	<script src="/socket.io/socket.io.js"></script>
 	<script src="https://www.youtube.com/iframe_api"></script>
 	<script> 
-
+	var skipped = 0;
 	var socket = io.connect();
 	
 	//YouTube iFrame Player API
@@ -255,10 +258,10 @@
 	function handler() {
 		console.log("Handler called - client side cue", cue)
 		if (player && cue.length > 0)  {
-			var id = cue.shift()
-			console.log(id)
-      		player.loadVideoById(id)
-			player.playVideo()
+			// var id = cue.shift()
+			// console.log(id)
+      		player.loadVideoById(cue[0])
+			// player.playVideo()
 			console.log("After cue shift - client side cue", cue)
 		}
 		else {
@@ -274,10 +277,13 @@
 
 	function addToCue(id, callback) {
 		cue.push(id)
-		if (callback)
+		if (callback) {
+			console.log("add to cue callback called");
 			callback();
-		else
+		}
+		else {
 			return
+		}
 	}
 
 	function stopVideo() {
@@ -302,6 +308,7 @@
 				$searchQuery = $('#search'),
 				$results = $('#results'),
 				$resultVideo = $('.resultThumbnails'),
+				$skip = $('.skip'),
 				resultsWindow = false;
 
 			// Ajax calls to YouTube API
@@ -385,6 +392,13 @@
 				});
 				$messageBox.val('');
 			});
+
+			$skip.click(function() {
+				socket.emit('skip', {'skipped': skipped++}, function(){
+					console.log("callback called")
+					socket.emit('play next video', cue);
+				});
+			})
 
 			socket.on('change video', function(data) {
 				if (!cue.length ||

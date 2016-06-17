@@ -5,5 +5,7 @@
 - fix duplicates
 - allow user to remove videos they have added to cue
 
+- vibzin.com / vybzin.com / letswatch.co // domain
+
 
 play next video callback isnt working - removes video after calling getCueFromDb instead of before...
