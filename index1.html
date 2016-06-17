@@ -348,6 +348,7 @@
 				var videoId = this.id,
 					videoTitle = this.title;
 				socket.emit('new video', {id: videoId, title: videoTitle});
+				$("#search").val("");				
 				$results.css("transform", "translateX(-100%)");
 			});
 
