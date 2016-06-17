@@ -404,7 +404,9 @@
 			});
 
 			socket.on('change video', function(data) {
-				if (!cue.length || player.getPlayerState() === 5) {
+				if (!cue.length || 
+					player.getPlayerState() === 5 ||
+					player.getPlayerState() === -1) {
 					addToCue(data.id, handler)
 					console.log("change video no length so called handler as callback")
 				} else {
@@ -415,7 +417,7 @@
 			});
 			
 			socket.on('new message', function(data) {
-				var str = (data.nick + ': ' + data.msg),
+				var str = ('<b>' + data.nick + '</b>: ' + data.msg),
 					br = document.createElement("br");
 				$chat.append(document.createTextNode(str));
 				$chat.append(br);
