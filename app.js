@@ -39,9 +39,17 @@ io.on('connection', function(socket) {
 		socket.broadcast.emit('user leave', {nick: socket.nickname});
 	});
 
-	socket.on('new video', function(data, callback) {
-		addToCue(data.id, socket.nickname, getCueFromDb())
-			io.sockets.emit('change video', {id: data.id, title: data.title, nick: socket.nickname});
+	socket.on('new video', function(data) {
+		var addToCueP = Promise.promisify(addToCue)
+		var getCueFromDbP = Promise.promisify(getCueFromDb)
+
+		addToCueP(data.id, socket.nickname)
+			.then(function() {
+				return getCueFromDbP
+			})
+			.then(function() {
+				io.sockets.emit('change video', {id: data.id, title: data.title, nick: socket.nickname});
+			})			
 	})
 
 	socket.on('skip', function(data, callback) {
