@@ -45,7 +45,7 @@ io.on('connection', function(socket) {
 
 		addToCueP(data.id, socket.nickname)
 			.then(function() {
-				return getCueFromDbP
+				return getCueFromDbP();
 			})
 			.then(function() {
 				io.sockets.emit('change video', {id: data.id, title: data.title, nick: socket.nickname});
@@ -61,7 +61,7 @@ io.on('connection', function(socket) {
 		}
 	})
 
-	socket.on('play next video', function(data) {
+	socket.on('play next video', function() {
 		console.log("play next video socket", cue)
 		var removeVideoP = Promise.promisify(removeVideo)
 		var getCueFromDbP = Promise.promisify(getCueFromDb)
@@ -111,7 +111,7 @@ var getCueFromDb = function(callback) {
 				return err;
 			}
 			if (videos.length) {
-				cue.length = 0 // empty array
+				cue = []; // empty array
 				videos.forEach(function(video) {
 					cue.push(video.id) // push all the videos from db into cue array
 					console.log("pushed", video.id)

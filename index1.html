@@ -396,12 +396,12 @@
 			$skip.click(function() {
 				socket.emit('skip', {'skipped': skipped++}, function(){
 					console.log("callback called")
-					socket.emit('play next video', cue);
+					socket.emit('play next video');
 				});
 			})
 
 			socket.on('change video', function(data) {
-				if (!cue.length) {
+				if (!cue.length || player.getPlayerState() === 5) {
 					addToCue(data.id, handler)
 					console.log("change video no length so called handler as callback")
 				} else {
@@ -430,6 +430,7 @@
 			});
 
 			socket.on('send cue', function(data) {
+				$chat.append("Cue retrieved from server now<br/>")
 				cue = data.cue
 			});
 
