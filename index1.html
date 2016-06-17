@@ -42,13 +42,17 @@
 			font-family: Arial;
 		}
 
-		.error{
+		.error {
 			color: red;
 		}
 
-		.whisper{
+		.whisper {
 			color: gray;
 			font-style: italic;
+		}
+
+		.bold {
+			font-weight: bold;
 		}
 
 		#send-message {
@@ -417,8 +421,13 @@
 			});
 			
 			socket.on('new message', function(data) {
-				var str = ('<b>' + data.nick + '</b>: ' + data.msg),
+				var str = (': ' + data.msg),
+					span = document.createElement("span");
 					br = document.createElement("br");
+				$chat.append(span);
+				span.setAttribute("class", "bold");
+				$chat.append(span);
+				span.innerHTML = data.nick;
 				$chat.append(document.createTextNode(str));
 				$chat.append(br);
 				$chat.scrollTop(document.getElementById("chat").scrollHeight);
