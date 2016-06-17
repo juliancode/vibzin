@@ -394,11 +394,13 @@
 			});
 
 			$skip.click(function() {
-				socket.emit('skip', {'skipped': skipped++}, function(){
-					$chat.append('<span class="whisper">Song was skipped</span><br/>"');
+				socket.emit('skip', {'skipped': skipped++});
+			});
+
+			socket.on('skipped video', function(data) {
+				$chat.append('<span class="whisper">Song was skipped</span><br/>');
 					socket.emit('play next video');
-				});
-			})
+			});
 
 			socket.on('change video', function(data) {
 				if (!cue.length || player.getPlayerState() === 5) {

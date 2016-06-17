@@ -54,7 +54,7 @@ io.on('connection', function(socket) {
 
 	socket.on('skip', function(data, callback) {
 		if (data.skipped+1 >= Object.keys(users).length/2) {
-			callback();
+			io.sockets.emit('skipped video');
 		}
 		else {
 			console.log("Not enough people voted to skip!")
