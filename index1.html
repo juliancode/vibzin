@@ -401,14 +401,9 @@
 			})
 
 			socket.on('change video', function(data) {
-				if (!cue.length ||
-					!player.getPlayerState() === 1 || 
-					!player.getPlayerState() === 2 || 
-					player.getPlayerState() === 0 || 
-					// player.getPlayerState() === -1 ||
-					player.getPlayerState() === 5) {
+				if (!cue.length) {
 					addToCue(data.id, handler)
-					console.log(cue)
+					console.log("change video no length so called handler as callback")
 				} else {
 					addToCue(data.id)
 				}
