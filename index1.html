@@ -395,7 +395,7 @@
 
 			$skip.click(function() {
 				socket.emit('skip', {'skipped': skipped++}, function(){
-					console.log("callback called")
+					$chat.append('<span class="whisper">Song was skipped</span><br/>");
 					socket.emit('play next video');
 				});
 			})
