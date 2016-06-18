@@ -296,7 +296,7 @@
 				resultsWindow = false;
 
 		function handler() {
-			$chat.append("handler()")
+			$chat.append("handler()</br>")
 			$chat.scrollTop(document.getElementById("chat").scrollHeight);
 			console.log("Handler called - client side cue", cue)
 			if (cue.length > 0)  {
@@ -400,7 +400,7 @@
 			});
 
 			socket.on('change video', function(data) {
-				$chat.append("socket.on('change video')")
+				$chat.append("socket.on('change video')</br>")
 				$chat.scrollTop(document.getElementById("chat").scrollHeight);
 				if (!cue.length || player.getPlayerState() === 5) {
 					handler();
@@ -423,26 +423,26 @@
 			});
 
 			socket.on('play video', function() {
-				$chat.append("socket.on('play video')")
+				$chat.append("socket.on('play video')</br>")
 				$chat.scrollTop(document.getElementById("chat").scrollHeight);
 				player.playVideo();
 			});
 
 			socket.on('pause video', function() {
-				$chat.append("socket.on('pause video')")
+				$chat.append("socket.on('pause video')</br>")
 				$chat.scrollTop(document.getElementById("chat").scrollHeight);
 				player.pauseVideo();
 			});
 
 			socket.on('send cue', function(data) {
-				$chat.append("send cue")
+				$chat.append("send cue</br>")
 				$chat.scrollTop(document.getElementById("chat").scrollHeight);
 				cue = data.cue;
 				console.log("Received cue from server", cue)
 			});
 
 			socket.on('next video', function() {
-				$chat.append("next video")
+				$chat.append("next video</br>")
 				$chat.scrollTop(document.getElementById("chat").scrollHeight);
 				handler();
 			});
