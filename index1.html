@@ -259,18 +259,6 @@
 	    }
 	}
 	      
-	function handler() {
-		$chat.append("handler()")
-		$chat.scrollTop(document.getElementById("chat").scrollHeight);
-		console.log("Handler called - client side cue", cue)
-		if (cue.length > 0)  {
-      		player.loadVideoById(cue[0])
-		}
-		else {
-			player.stopVideo();
-			console.log("No videos in client side cue")
-		}
-	}
 
 	// function playVideoNow(id) {
 	// 	player.loadVideoById(id)
@@ -307,6 +295,18 @@
 				$skip = $('.skip'),
 				resultsWindow = false;
 
+		function handler() {
+			$chat.append("handler()")
+			$chat.scrollTop(document.getElementById("chat").scrollHeight);
+			console.log("Handler called - client side cue", cue)
+			if (cue.length > 0)  {
+	      		player.loadVideoById(cue[0])
+			}
+			else {
+				player.stopVideo();
+				console.log("No videos in client side cue")
+			}
+		}
 			// Ajax calls to YouTube API
 
 			$searchForm.submit(function(e) {
