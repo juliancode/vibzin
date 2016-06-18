@@ -249,7 +249,7 @@
 	      		break;
 	      	case 2:
 	      		console.log("pause")
-	      		// socket.emit('pause video')
+	      		socket.emit('pause video')
 	      		break;
 	      	case 3:
 	      		console.log("buffering")
@@ -260,6 +260,8 @@
 	}
 	      
 	function handler() {
+		$chat.append("handler()")
+		$chat.scrollTop(document.getElementById("chat").scrollHeight);
 		console.log("Handler called - client side cue", cue)
 		if (cue.length > 0)  {
       		player.loadVideoById(cue[0])
@@ -388,7 +390,6 @@
 			});
 
 			$skip.click(function() {
-				$chat.append('Song has been skipped<br/>');
 				socket.emit('play next video');
 			});
 
@@ -399,7 +400,8 @@
 			});
 
 			socket.on('change video', function(data) {
-				// cue.push(data.id);
+				$chat.append("socket.on('change video')")
+				$chat.scrollTop(document.getElementById("chat").scrollHeight);
 				if (!cue.length || player.getPlayerState() === 5) {
 					handler();
 				}
@@ -421,19 +423,27 @@
 			});
 
 			socket.on('play video', function() {
+				$chat.append("socket.on('play video')")
+				$chat.scrollTop(document.getElementById("chat").scrollHeight);
 				player.playVideo();
 			});
 
 			socket.on('pause video', function() {
+				$chat.append("socket.on('pause video')")
+				$chat.scrollTop(document.getElementById("chat").scrollHeight);
 				player.pauseVideo();
 			});
 
 			socket.on('send cue', function(data) {
+				$chat.append("send cue")
+				$chat.scrollTop(document.getElementById("chat").scrollHeight);
 				cue = data.cue;
 				console.log("Received cue from server", cue)
 			});
 
 			socket.on('next video', function() {
+				$chat.append("next video")
+				$chat.scrollTop(document.getElementById("chat").scrollHeight);
 				handler();
 			});
 		});
