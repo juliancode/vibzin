@@ -39,42 +39,63 @@ io.on('connection', function(socket) {
 		socket.broadcast.emit('user leave', {nick: socket.nickname});
 	});
 
-	socket.on('new video', function(data) {
-		var addToCueP = Promise.promisify(addToCue)
-		var getCueFromDbP = Promise.promisify(getCueFromDb)
-
-		addToCueP(data.id, socket.nickname)
-			.then(function() {
-				return getCueFromDbP();
-			})
-			.then(function() {
-				io.sockets.emit('change video', {id: data.id, title: data.title, nick: socket.nickname});
-			})			
-	})
-
 	socket.on('skip', function(data, callback) {
 		if (data.skipped+1 >= Object.keys(users).length/2) {
 			io.sockets.emit('skipped video');
 		}
 		else {
-			console.log("Not enough people voted to skip!")
+			return
 		}
-	})
+	});
+
+	socket.on('new video', function(data) {
+		console.log("New video")
+		// var addToCueP = Promise.promisify(addToCue)
+		// var getCueFromDbP = Promise.promisify(getCueFromDb)
+
+		return addToCue(data.id, socket.nickname)
+		.then(function() {
+			return getCueFromDb();
+		})
+		.then(function() {
+			console.log("Emit change video")
+			io.sockets.emit('change video', {id: data.id, title: data.title, nick: socket.nickname});
+		})
+		.catch(function(e) {
+			console.log("Error", e)
+		})
+	});
+
+	// socket.on('new video', function(data) {
+	// 	console.log("New video")
+
+	// 	Promise.join(addToCue(data.id, socket.nickname), getCueFromDb(), function() {
+	// 		console.log("Emit change video")
+	// 		io.sockets.emit('change video', {id: data.id, title: data.title, nick: socket.nickname});
+	// 	}).catch(function(e) {
+	// 		console.log("error", e)
+	// 	});
+	// });
 
 	socket.on('play next video', function() {
-		console.log("play next video socket", cue)
-		var removeVideoP = Promise.promisify(removeVideo)
-		var getCueFromDbP = Promise.promisify(getCueFromDb)
+		// var removeVideoP = Promise.promisify(removeVideo)
+		// var getCueFromDbP = Promise.promisify(getCueFromDb)
 
-		removeVideoP(cue[0])
+		return removeVideo(cue[0])
 			.then(function() {
-				return getCueFromDbP();
+				return getCueFromDb();
 			})
 			.then(function() {
-				console.log("end of play next video socket", cue)
 				io.sockets.emit('next video');
 			})
 	});	
+
+	// socket.on('play next video', function() {
+	// 	Promise.join(removeVideo(cue[0]), getCueFromDb(), function() {
+	// 		console.log("Emit next video")
+	// 		io.sockets.emit('next video');
+	// 	});
+	// });	
 
 	socket.on('send message', function(data, callback){
 		if (data === '!empty') {
@@ -105,38 +126,38 @@ function updateNicknames(){
 }
 
 var getCueFromDb = function(callback) {
-	console.log("getCueFromDb Called outside IF")
-	Video.find({}).exec(function(err, videos) {
-			if (err) {
-				return err;
-			}
-			if (videos.length) {
-				cue = []; // empty array
-				videos.forEach(function(video) {
-					cue.push(video.id) // push all the videos from db into cue array
-					console.log("pushed", video.id)
-				});
-				console.log("Get cue from db called", cue);
-				io.sockets.emit('send cue', {cue: cue});
-				if (callback) {
-					console.log("callback called on getCueFromDb", callback)
-					callback();
-					return
+	return new Promise(function(resolve, reject) {
+		Video.find({}).exec(function(err, videos) {
+				if (err) {
+					reject(err);
+				}
+				if (videos.length) {
+					cue = []; // empty array
+					videos.forEach(function(video) {
+						cue.push(video.id) // push all the videos from db into cue array
+					});
+					io.sockets.emit('send cue', {cue: cue});
+					console.log("getCueFromDb", cue)
+					resolve();
+					if (callback) {
+						callback();
+						return
+					}
+					else {
+						return
+					}
 				}
 				else {
-					console.log("no callback called on getCueFromDb")
-					return
+					cue = [];
+					io.sockets.emit('send cue', {cue: cue});
+					console.log("getCueFromDb (no videos)", cue)
+					resolve();
+					if (callback)
+						callback()
+					else
+						return
 				}
-			}
-			else {
-				cue = [];
-				io.sockets.emit('send cue', {cue: cue});
-				console.log("Get cue from db no videos left", cue);
-				if (callback)
-					callback()
-				else
-					return
-			}
+		})	
 	})
 }
 
@@ -153,42 +174,31 @@ var dropDb = function(callback) {
 	});
 }
 
-var removeVideo = function(id, callback) {
-	Video.find({'id' : id}).remove(function(err, data) {
-		if (err)
-			return (err)
-		else {
-			console.log("Removed video", id)
-			cue.shift();
-			if (callback) {
-				console.log("callback called on removeVideo")
-				callback();
-				return
-			}
+var removeVideo = function(id) {
+	return new Promise(function(resolve, reject) {
+		Video.find({'id' : id}).remove(function(err, data) {
+			if (err)
+				reject(err);
 			else {
-				console.log("no callback called on removeVideo")
-				return
+				console.log("Remove video")
+				resolve();
 			}
-		}
-	});
+		});
+	})
 }
 
-var addToCue = function(id, user, callback) {
-	var video = new Video();
-	video.id = id;
-	video.user = user;
-	video.save(function(err, data) {
-		if (err) {
-			console.log(err)
-		} else {
-			console.log("added", video.id);
-		}
-		if (callback) {
-			console.log("add to cue", callback);
-			callback();
-		}
-		else {
-			console.log("No callback in addToCue");
-		}
-	});
+var addToCue = function(id, user) {
+	console.log("Add to cue")
+	return new Promise(function(resolve, reject) {
+		var video = new Video();
+		video.id = id;
+		video.user = user;
+		video.save(function(err, data) {
+			if (err) {
+				reject(err);
+			} else {
+				resolve();
+			}
+		});
+	})
 }

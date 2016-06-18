@@ -241,7 +241,7 @@
 	      		break;
 	      	case 0:
 	      		console.log("ended")
-	      		socket.emit('play next video', cue)
+	      		socket.emit('play next video')
 	      		break;
 	      	case 1:
 	      		console.log("play")
@@ -249,7 +249,7 @@
 	      		break;
 	      	case 2:
 	      		console.log("pause")
-	      		socket.emit('pause video')
+	      		// socket.emit('pause video')
 	      		break;
 	      	case 3:
 	      		console.log("buffering")
@@ -261,12 +261,8 @@
 	      
 	function handler() {
 		console.log("Handler called - client side cue", cue)
-		if (player && cue.length > 0)  {
-			// var id = cue.shift()
-			// console.log(id)
+		if (cue.length > 0)  {
       		player.loadVideoById(cue[0])
-			// player.playVideo()
-			console.log("After cue shift - client side cue", cue)
 		}
 		else {
 			player.stopVideo();
@@ -404,13 +400,13 @@
 
 			socket.on('skipped video', function(data) {
 				$chat.append('<span class="whisper">Song was skipped</span><br/>');
+				$chat.scrollTop(document.getElementById("chat").scrollHeight);
 					socket.emit('play next video');
 			});
 
 			socket.on('change video', function(data) {
 				if (!cue.length || 
-					player.getPlayerState() === 5 ||
-					player.getPlayerState() === -1) {
+					player.getPlayerState() === 5) {
 					addToCue(data.id, handler)
 					console.log("change video no length so called handler as callback")
 				} else {
@@ -444,7 +440,7 @@
 			});
 
 			socket.on('send cue', function(data) {
-				cue = data.cue
+				cue = data.cue;
 			});
 
 			socket.on('next video', function() {
