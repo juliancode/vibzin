@@ -382,12 +382,13 @@
 			$messageForm.submit(function(e) {
 				e.preventDefault();
 				socket.emit('send message', $messageBox.val(), function(data) {
-					$chat.append('<span class="error">' + data + "</span><br/>");
+					$chat.append('<span class="error">' + data + '</span><br/>');
 				});
 				$messageBox.val('');
 			});
 
 			$skip.click(function() {
+				$chat.append('Song has been skipped<br/>');
 				socket.emit('play next video');
 			});
 
