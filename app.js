@@ -59,7 +59,7 @@ io.on('connection', function(socket) {
 		})
 		.then(function() {
 			console.log("Emit change video")
-			io.sockets.emit('change video', {id: data.id, title: data.title, nick: socket.nickname});
+			return io.sockets.emit('change video', {id: data.id, title: data.title, nick: socket.nickname});
 		})
 		.catch(function(e) {
 			console.log("Error", e)

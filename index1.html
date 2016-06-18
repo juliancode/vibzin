@@ -275,16 +275,10 @@
 	// 	player.playVideo()
 	// }
 
-	function addToCue(id, callback) {
-		cue.push(id)
-		if (callback) {
-			console.log("add to cue callback called");
-			callback();
-		}
-		else {
-			return
-		}
-	}
+	// function addToCue(id) {
+	// 	cue.push(id)
+	// 	player.loadVideoById(cue[0])
+	// }
 
 	function stopVideo() {
 		player.stopVideo()
@@ -335,7 +329,6 @@
 			// Possibly bad performance having event handler on whole document - change?
 
 			$(document).on('click', function() {
-				console.log(resultsWindow)
 				if (resultsWindow)
 					$results.css("transform", "translateX(-100%)");
 					resultsWindow = false
@@ -405,12 +398,9 @@
 			});
 
 			socket.on('change video', function(data) {
-				if (!cue.length || 
-					player.getPlayerState() === 5) {
-					addToCue(data.id, handler)
-					console.log("change video no length so called handler as callback")
-				} else {
-					addToCue(data.id)
+				// cue.push(data.id);
+				if (!cue.length || player.getPlayerState() === 5) {
+					handler();
 				}
 				$chat.append('<span class="whisper"><b>' + data.nick + '</b> added <b>' + data.title + '</b> to the cue</span><br/>');
 				$chat.scrollTop(document.getElementById("chat").scrollHeight);
@@ -429,18 +419,17 @@
 				$chat.scrollTop(document.getElementById("chat").scrollHeight);
 			});
 
-			socket.on('pause video', function() {
-				player.pauseVideo();
-				console.log("pause video serverside")
-			});
-
 			socket.on('play video', function() {
 				player.playVideo();
-				console.log("play video serverside")
+			});
+			
+			socket.on('pause video', function() {
+				player.pauseVideo();
 			});
 
 			socket.on('send cue', function(data) {
 				cue = data.cue;
+				console.log("Received cue from server", cue)
 			});
 
 			socket.on('next video', function() {
