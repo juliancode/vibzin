@@ -41,7 +41,7 @@ io.on('connection', function(socket) {
 
 	socket.on('skip', function(data, callback) {
 		if (data.skipped+1 >= Object.keys(users).length/2) {
-			io.sockets.emit('skipped video');
+			socket.emit('skipped video');
 		}
 		else {
 			return
@@ -59,7 +59,7 @@ io.on('connection', function(socket) {
 		})
 		.then(function() {
 			console.log("Emit change video")
-			return io.sockets.emit('change video', {id: data.id, title: data.title, nick: socket.nickname});
+			return socket.emit('change video', {id: data.id, title: data.title, nick: socket.nickname});
 		})
 		.catch(function(e) {
 			console.log("Error", e)
@@ -86,7 +86,7 @@ io.on('connection', function(socket) {
 				return getCueFromDb();
 			})
 			.then(function() {
-				io.sockets.emit('next video');
+				socket.emit('next video');
 			})
 	});	
 
