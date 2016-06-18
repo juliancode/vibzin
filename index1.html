@@ -388,7 +388,7 @@
 			});
 
 			$skip.click(function() {
-				socket.emit('skip', {'skipped': skipped++});
+				socket.emit('play next video');
 			});
 
 			socket.on('skipped video', function(data) {
@@ -422,7 +422,7 @@
 			socket.on('play video', function() {
 				player.playVideo();
 			});
-			
+
 			socket.on('pause video', function() {
 				player.pauseVideo();
 			});
