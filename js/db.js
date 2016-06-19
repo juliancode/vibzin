@@ -4,6 +4,7 @@ mongoose.connect(MONGODBURI);
 
 var Video = mongoose.model('Video', {
     id: String,
+    title: String,
     user: String,
 });
 

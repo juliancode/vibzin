@@ -10,6 +10,7 @@
 		}
 
 		body {
+			font-family: Arial;
 			background-color: #f9effe;
 		}
 
@@ -66,6 +67,7 @@
 			padding: 10px;
 			border: 1px solid #aaa;
 			border-top: 0;
+			overflow-y: auto;
 		}
 
 		button.send {
@@ -135,10 +137,46 @@
 		}
 
 		#mainWrap {
+			position: relative;
 			width: 720px;
 			display: flex;
 			border: 1px solid #aaa;
 		}
+
+		.cueWrap {
+			position: absolute;
+			left: 719px;
+			top: -391px;
+			width: 400px;
+			height: 390px;
+			padding: 5px;
+			border: 1px solid #aaa;
+			border-left: 0;
+			overflow-y: auto;
+		}
+
+		.cueWrap ul {
+			margin: 0;
+			padding: 0;
+			margin-left: 10px;
+			list-style-type: none;
+		}
+
+		.cueWrap ul li {
+			margin: 0;
+			padding-bottom: 5px;
+			list-style-type: none;
+		}
+
+		.cueWrap ul li:first-of-type {
+			font-weight: bold;
+		}
+		
+		.cueWrap ul li:first-of-type:before {
+			content: "► ";
+		}
+
+
 	</style>
 </head>
 <body>
@@ -160,12 +198,18 @@
 			
 		</div>
 		<div id="player">
+			
 		</div>
 		<div id="mainWrap">
 			<div id="chatWrap">
 				<div id="chat"></div>
 			</div>
-			<div id="users"></div>	
+			<div id="users">
+			</div>
+			<div class="cueWrap">
+				<ul id="cue">
+				</ul>
+			</div>
 		</div>
 		<form id="send-message" autocomplete="off">
 			<input size="35" id="message"></input>
@@ -193,7 +237,10 @@
 	      // 3. This function creates an <iframe> (and YouTube player)
 	      //    after the API code downloads.
 	    	var player = undefined,
-	    		cue = [];
+	    		cue = { 
+	    			id: [],
+	    			title: []
+	    		}
 
 	      var playerStates = {
 	      	unstarted: -1, 
@@ -208,7 +255,7 @@
 	      	player = new YT.Player('player', {
 				height: '390',
 				width: '720',
-				videoId: cue[0],
+				videoId: cue.id[0],
 				playerVars: {
 					'controls': 0,
 					'rel': 0,
@@ -293,14 +340,15 @@
 				$results = $('#results'),
 				$resultVideo = $('.resultThumbnails'),
 				$skip = $('.skip'),
+				$cue = $('#cue'),
 				resultsWindow = false;
 
 		function handler() {
 			$chat.append("handler()</br>")
 			$chat.scrollTop(document.getElementById("chat").scrollHeight);
-			console.log("Handler called - client side cue", cue)
-			if (cue.length > 0)  {
-	      		player.loadVideoById(cue[0])
+			console.log("Handler called - client side cue", cue.id)
+			if (cue.id.length > 0)  {
+	      		player.loadVideoById(cue.id[0])
 			}
 			else {
 				player.stopVideo();
@@ -402,7 +450,7 @@
 			socket.on('change video', function(data) {
 				$chat.append("socket.on('change video')</br>")
 				$chat.scrollTop(document.getElementById("chat").scrollHeight);
-				if (!cue.length || player.getPlayerState() === 5) {
+				if (!cue.id.length || player.getPlayerState() === 5) {
 					handler();
 				}
 				$chat.append('<span class="whisper"><b>' + data.nick + '</b> added <b>' + data.title + '</b> to the cue</span><br/>');
@@ -413,13 +461,15 @@
 				var str = (': ' + data.msg),
 					span = document.createElement("span");
 					br = document.createElement("br");
-				$chat.append(span);
-				span.setAttribute("class", "bold");
-				$chat.append(span);
-				span.innerHTML = data.nick;
-				$chat.append(document.createTextNode(str));
-				$chat.append(br);
-				$chat.scrollTop(document.getElementById("chat").scrollHeight);
+				if (data.msg) {
+					$chat.append(span);
+					span.setAttribute("class", "bold");
+					$chat.append(span);
+					span.innerHTML = data.nick;
+					$chat.append(document.createTextNode(str));
+					$chat.append(br);
+					$chat.scrollTop(document.getElementById("chat").scrollHeight);
+				}
 			});
 
 			socket.on('play video', function() {
@@ -437,7 +487,18 @@
 			socket.on('send cue', function(data) {
 				$chat.append("send cue</br>")
 				$chat.scrollTop(document.getElementById("chat").scrollHeight);
-				cue = data.cue;
+				cue.id = data.cue;
+				cue.title = data.title;
+				console.log(data.title)
+				if (cue.title) {
+					$cue.empty(); 
+					cue.title.forEach(function(element) {
+						console.log(element)
+						var li = document.createElement("li");
+						$cue.append(li)
+						li.innerHTML = element
+					})
+				}
 				console.log("Received cue from server", cue)
 			});
 

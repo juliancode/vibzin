@@ -6,7 +6,10 @@ var express = require('express'),
 	Promise = require("bluebird"),
 	Video = require('./js/db').Video,
 	users = {},
-	cue = [],
+	cue = {
+		id: [],
+		title: [],
+	},
 	port = Number(process.env.PORT || 3000)
 
 server.listen(port, function() {
@@ -53,7 +56,7 @@ io.on('connection', function(socket) {
 		// var addToCueP = Promise.promisify(addToCue)
 		// var getCueFromDbP = Promise.promisify(getCueFromDb)
 
-		return addToCue(data.id, socket.nickname)
+		return addToCue(data.id, data.title)
 		.then(function() {
 			return getCueFromDb();
 		})
@@ -81,7 +84,7 @@ io.on('connection', function(socket) {
 		// var removeVideoP = Promise.promisify(removeVideo)
 		// var getCueFromDbP = Promise.promisify(getCueFromDb)
 
-		return removeVideo(cue[0])
+		return removeVideo(cue.id[0])
 			.then(function() {
 				return getCueFromDb();
 			})
@@ -132,12 +135,16 @@ var getCueFromDb = function(callback) {
 					reject(err);
 				}
 				if (videos.length) {
-					cue = []; // empty array
+
+					cue.id = []; // empty array
+					cue.title = [];
 					videos.forEach(function(video) {
-						cue.push(video.id) // push all the videos from db into cue array
+						cue.id.push(video.id) // push all the videos from db into cue array
+						cue.title.push(video.title)
 					});
-					io.sockets.emit('send cue', {cue: cue});
-					console.log("getCueFromDb", cue)
+					console.log(cue)
+					io.sockets.emit('send cue', {cue: cue.id, title: cue.title});
+					console.log("getCueFromDb", cue.id)
 					resolve();
 					if (callback) {
 						callback();
@@ -148,9 +155,11 @@ var getCueFromDb = function(callback) {
 					}
 				}
 				else {
-					cue = [];
-					io.sockets.emit('send cue', {cue: cue});
-					console.log("getCueFromDb (no videos)", cue)
+					cue.id = [];
+					cue.title = [];
+					io.sockets.emit('send cue', {cue: cue.id, title: cue.title});
+					console.log(cue)
+					console.log("getCueFromDb (no videos)", cue.id)
 					resolve();
 					if (callback)
 						callback()
@@ -187,12 +196,13 @@ var removeVideo = function(id) {
 	})
 }
 
-var addToCue = function(id, user) {
+var addToCue = function(id, title) {
 	console.log("Add to cue")
 	return new Promise(function(resolve, reject) {
 		var video = new Video();
+		console.log(title)
 		video.id = id;
-		video.user = user;
+		video.title = title;
 		video.save(function(err, data) {
 			if (err) {
 				reject(err);
