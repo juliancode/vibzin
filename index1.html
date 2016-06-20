@@ -144,13 +144,46 @@
 			border: 1px solid #aaa;
 		}
 
-		.cueWrap {
+		.uiWrap {
 			background: white;
 			position: absolute;
 			left: 719px;
 			top: -391px;
 			width: 400px;
 			height: 390px;
+			/*padding: 5px;*/
+			border: 1px solid #aaa;
+			border-left: 0;
+			border-bottom: 0;
+			overflow-y: auto;
+		}
+
+		.uiWrap .skip {
+			cursor: pointer;
+			outline: none;
+			border: 0;
+			color: white;
+			width: 100%;
+			height: 50px;
+			background: red;
+			font-size: 18px;
+		}
+
+		.uiWrap .skip:disabled {
+			cursor: default;
+			width: 100%;
+			height: 50px;
+			background: grey;
+			font-size: 18px;
+		}
+
+		.cueWrap {
+			background: white;
+			position: absolute;
+			left: 719px;
+			top: -1px;
+			width: 400px;
+			height: 352px;
 			padding: 5px;
 			border: 1px solid #aaa;
 			border-left: 0;
@@ -232,7 +265,7 @@
 			<p id="nickError"></p>
 			<img src="https://media.giphy.com/media/YlD8c1eiz9Pzi/giphy.gif" style="width: 325px; height: auto; margin: 20px;">
 			<form id="setNick">
-				<input id="nickname" placeholder="Enter your name"></input>
+				<input id="nickname" autocomplete="off" placeholder="Enter your name"></input>
 				<input type="submit" value="Enter"></input>
 			</form>
 		</div>
@@ -255,6 +288,9 @@
 			</div>
 			<div id="users">
 			</div>
+			<div class="uiWrap">
+				<input type="button" value="Skip" class="skip">
+			</div>
 			<div class="cueWrap">
 				<ul id="cue">
 				</ul>
@@ -264,7 +300,6 @@
 			<input size="35" id="message"></input>
 			<button class="send">Send</button>
 		</form>
-		<button class="skip">Skip >></button>
 	</div>
 
 
@@ -289,7 +324,8 @@
 	    		cue = { 
 	    			id: [],
 	    			title: []
-	    		}
+	    		},
+	    		usernames = []
 
 	      var playerStates = {
 	      	unstarted: -1, 
@@ -476,6 +512,8 @@
 			});			
 			
 			socket.on('usernames', function(data) {
+				usernames = data;
+				$skip.val("Skip (" + skipped + "/" + Math.round(usernames.length / 2) + ")");
 				var html = '';
 				for(i=0; i < data.length; i++) {
 					html += data[i] + '<br/>'
@@ -492,13 +530,30 @@
 			});
 
 			$skip.click(function() {
-				socket.emit('play next video');
+				$(this).attr("disabled", true);
+				skipped++;
+
+				socket.emit('vote skip', {skipvotes: skipped});
 			});
 
-			socket.on('skipped video', function(data) {
-				$chat.append('<span class="whisper">Song was skipped</span><br/>');
-				$chat.scrollTop(document.getElementById("chat").scrollHeight);
+			socket.on('skip', function(data) {
+				console.log(data.skip)
+				if (data.skip) {
+					skipped = data.skipvotes
+					$chat.append(skipped + " vote(s) to skip</br>");
+					$chat.scrollTop(document.getElementById("chat").scrollHeight);
+					$chat.append('<span class="whisper">Song was voted to skip!</span></br>');
+					$chat.scrollTop(document.getElementById("chat").scrollHeight);
+					skipped = 0;
+					$skip.val("Skip (" + skipped + "/" + Math.round(usernames.length / 2) + ")");
+					$skip.attr("disabled", false);
 					socket.emit('play next video');
+				} else {
+					skipped = data.skipvotes
+					$skip.val("Skip (" + skipped + "/" + Math.round(usernames.length / 2) + ")");
+					$chat.append(skipped + " vote(s) to skip</br>");
+					$chat.scrollTop(document.getElementById("chat").scrollHeight);
+				}
 			});
 
 			socket.on('change video', function(data) {

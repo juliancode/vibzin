@@ -42,12 +42,11 @@ io.on('connection', function(socket) {
 		socket.broadcast.emit('user leave', {nick: socket.nickname});
 	});
 
-	socket.on('skip', function(data, callback) {
-		if (data.skipped+1 >= Object.keys(users).length/2) {
-			io.sockets.emit('skipped video');
-		}
-		else {
-			return
+	socket.on('vote skip', function(data) {
+		if (data.skipvotes > Math.round(Object.keys(users).length)/2) {
+			io.sockets.emit('skip', {skip: true, skipvotes: data.skipvotes })
+		} else {
+			io.sockets.emit('skip', {skip: false, skipvotes: data.skipvotes })
 		}
 	});
 
