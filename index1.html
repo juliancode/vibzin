@@ -327,6 +327,7 @@
 	    		},
 	    		usernames = []
 
+
 	      var playerStates = {
 	      	unstarted: -1, 
 	      	ended: 0,
@@ -503,7 +504,8 @@
 			});
 
 			socket.on('user join', function(data) {
-				$chat.append(data.nick + ' has entered the room</br>')
+				username = data.nick
+				$chat.append(username + ' has entered the room</br>')
 				$chat.scrollTop(document.getElementById("chat").scrollHeight);
 			});
 
@@ -533,15 +535,15 @@
 			$skip.click(function() {
 				$(this).attr("disabled", true);
 				skipped++;
-
 				socket.emit('vote skip', {skipvotes: skipped});
 			});
 
 			socket.on('skip', function(data) {
+				console.log(data)
 				console.log(data.skip)
 				if (data.skip) {
 					skipped = data.skipvotes
-					$chat.append(skipped + " vote(s) to skip</br>");
+					$chat.append(data.username + " voted to skip (" + skipped + "/" + Math.round(usernames.length / 2) + ")</br>");
 					$chat.scrollTop(document.getElementById("chat").scrollHeight);
 					$chat.append('<span class="whisper">Song was voted to skip!</span></br>');
 					$chat.scrollTop(document.getElementById("chat").scrollHeight);
@@ -552,7 +554,7 @@
 				} else {
 					skipped = data.skipvotes
 					$skip.val("Skip (" + skipped + "/" + Math.round(usernames.length / 2) + ")");
-					$chat.append(skipped + " vote(s) to skip</br>");
+					$chat.append(data.username + " voted to skip (" + skipped + "/" + Math.round(usernames.length / 2) + ")</br>");
 					$chat.scrollTop(document.getElementById("chat").scrollHeight);
 				}
 			});

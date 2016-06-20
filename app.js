@@ -43,10 +43,11 @@ io.on('connection', function(socket) {
 	});
 
 	socket.on('vote skip', function(data) {
-		if (data.skipvotes > Math.round(Object.keys(users).length)/2) {
-			io.sockets.emit('skip', {skip: true, skipvotes: data.skipvotes })
+		console.log(data)
+		if (data.skipvotes >= Math.round(Object.keys(users).length)/2) {
+			io.sockets.emit('skip', {skip: true, skipvotes: data.skipvotes, username: socket.nickname})
 		} else {
-			io.sockets.emit('skip', {skip: false, skipvotes: data.skipvotes })
+			io.sockets.emit('skip', {skip: false, skipvotes: data.skipvotes, username: socket.nickname})
 		}
 	});
 
