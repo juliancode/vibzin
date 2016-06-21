@@ -43,15 +43,15 @@
 			font-family: Arial;
 		}
 
-		.error {
-			color: red;
-		}
-
 		.whisper {
 			color: gray;
 			font-style: italic;
 		}
 
+		.error {
+			color: red;
+		}
+		
 		.bold {
 			font-weight: bold;
 		}
@@ -490,8 +490,8 @@
 		function handler() {
 			fired = true;
 
-			$chat.append("handler()</br>")
-			$chat.scrollTop(document.getElementById("chat").scrollHeight);
+			// $chat.append("handler()</br>")
+			// $chat.scrollTop(document.getElementById("chat").scrollHeight);
 			console.log("Handler called - client side cue", cue.id)
 			if (cue.id.length > 0)  {
 	      		player.loadVideoById(cue.id[0])
@@ -566,7 +566,7 @@
 
 			socket.on('user join', function(data) {
 				username = data.nick
-				$chat.append(username + ' has entered the room</br>')
+				$chat.append(data.nick + ' has entered the room</br>')
 				$chat.scrollTop(document.getElementById("chat").scrollHeight);
 			});
 
@@ -601,7 +601,7 @@
 					socket.emit('vote skip', {skipvotes: skipped});
 				}
 				if (fired) {
-					$chat.append("You can't skip so soon please wait!</br>")
+					$chat.append('<span class="error">You can\'t skip so soon please wait!</span></br>')
 					$chat.scrollTop(document.getElementById("chat").scrollHeight);
 				}
 			});
@@ -611,9 +611,9 @@
 				console.log(data.skip)
 				if (data.skip) {
 					skipped = data.skipvotes
-					$chat.append(data.username + " voted to skip (" + skipped + "/" + Math.round(usernames.length / 2) + ")</br>");
+					$chat.append('<span class="whisper"><b>' + data.username + " </b>voted to skip <b>(" + skipped + "/" + Math.round(usernames.length / 2) + ")</b></br>");
 					$chat.scrollTop(document.getElementById("chat").scrollHeight);
-					$chat.append('<span class="whisper">Song was voted to skip!</span></br>');
+					$chat.append('<span class="whisper error"><b>' + cue.title[0] + "</b> has been skipped</br>");
 					$chat.scrollTop(document.getElementById("chat").scrollHeight);
 					skipped = 0;
 					$skip.val("Skip (" + skipped + "/" + Math.round(usernames.length / 2) + ")");
@@ -622,14 +622,14 @@
 				} else {
 					skipped = data.skipvotes
 					$skip.val("Skip (" + skipped + "/" + Math.round(usernames.length / 2) + ")");
-					$chat.append(data.username + " voted to skip (" + skipped + "/" + Math.round(usernames.length / 2) + ")</br>");
+					$chat.append('<span class="whisper"><b>' + data.username + " </b>voted to skip <b>(" + skipped + "/" + Math.round(usernames.length / 2) + ")</b></br>");
 					$chat.scrollTop(document.getElementById("chat").scrollHeight);
 				}
 			});
 
 			socket.on('change video', function(data) {
-				$chat.append("socket.on('change video')</br>")
-				$chat.scrollTop(document.getElementById("chat").scrollHeight);
+				// $chat.append("socket.on('change video')</br>")
+				// $chat.scrollTop(document.getElementById("chat").scrollHeight);
 				if (!cue.id.length || player.getPlayerState() === 5) {
 					handler();
 				}
@@ -653,20 +653,20 @@
 			});
 
 			socket.on('play video', function() {
-				$chat.append("socket.on('play video')</br>")
-				$chat.scrollTop(document.getElementById("chat").scrollHeight);
+				// $chat.append("socket.on('play video')</br>")
+				// $chat.scrollTop(document.getElementById("chat").scrollHeight);
 				player.playVideo();
 			});
 
 			socket.on('pause video', function() {
-				$chat.append("socket.on('pause video')</br>")
-				$chat.scrollTop(document.getElementById("chat").scrollHeight);
+				// $chat.append("socket.on('pause video')</br>")
+				// $chat.scrollTop(document.getElementById("chat").scrollHeight);
 				player.pauseVideo();
 			});
 
 			socket.on('send cue', function(data) {
-				$chat.append("send cue</br>")
-				$chat.scrollTop(document.getElementById("chat").scrollHeight);
+				// $chat.append("send cue</br>")
+				// $chat.scrollTop(document.getElementById("chat").scrollHeight);
 				cue.id = data.cue;
 				cue.title = data.title;
 				console.log(data.title)
@@ -684,8 +684,8 @@
 			});
 
 			socket.on('next video', function() {
-				$chat.append("next video</br>")
-				$chat.scrollTop(document.getElementById("chat").scrollHeight);
+				// $chat.append("next video</br>")
+				// $chat.scrollTop(document.getElementById("chat").scrollHeight);
 				handler();
 			});
 		});
