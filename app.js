@@ -10,6 +10,7 @@ var express = require('express'),
 		id: [],
 		title: [],
 	},
+	fired = false;
 	port = Number(process.env.PORT || 3000)
 
 server.listen(port, function() {
@@ -81,16 +82,19 @@ io.on('connection', function(socket) {
 	// });
 
 	socket.on('play next video', function() {
-		// var removeVideoP = Promise.promisify(removeVideo)
-		// var getCueFromDbP = Promise.promisify(getCueFromDb)
-
-		return removeVideo(cue.id[0])
-			.then(function() {
-				return getCueFromDb();
-			})
-			.then(function() {
-				io.sockets.emit('next video');
-			})
+		console.log(fired)
+		if (!fired) {
+			fired = true;
+			setTimeout(function() { 
+				fired = false;}, 3000);
+			return removeVideo(cue.id[0])
+				.then(function() {
+					return getCueFromDb();
+				})
+				.then(function() {
+					io.sockets.emit('next video');
+				})
+		}
 	});	
 
 	// socket.on('play next video', function() {

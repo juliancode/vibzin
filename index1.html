@@ -309,6 +309,7 @@
 	<script src="https://www.youtube.com/iframe_api"></script>
 	<script> 
 	var skipped = 0;
+	var fired = false;
 	var socket = io.connect();
 	
 	//YouTube iFrame Player API
@@ -431,6 +432,8 @@
 				resultsWindow = false;
 
 		function handler() {
+			fired = true;
+
 			$chat.append("handler()</br>")
 			$chat.scrollTop(document.getElementById("chat").scrollHeight);
 			console.log("Handler called - client side cue", cue.id)
@@ -441,6 +444,8 @@
 				player.stopVideo();
 				console.log("No videos in client side cue")
 			}
+
+			setTimeout(function(){ fired = false; }, 3000);
 		}
 			// Ajax calls to YouTube API
 
@@ -533,9 +538,15 @@
 			});
 
 			$skip.click(function() {
-				$(this).attr("disabled", true);
-				skipped++;
-				socket.emit('vote skip', {skipvotes: skipped});
+				if (!fired) {
+					console.log("not fired")
+					$(this).attr("disabled", true);
+					skipped++;
+					socket.emit('vote skip', {skipvotes: skipped});
+				}
+				if (fired) {
+					$chat.append("You can't skip so soon please wait!</br>")
+				}
 			});
 
 			socket.on('skip', function(data) {
