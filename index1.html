@@ -262,12 +262,21 @@
 			border: 2px solid white;
 		}
 
+		.progressWrap {
+			width: 720px;
+			height: 20px;
+			background: darkred;
+			position: relative;
+		}
+
 		.progress {
+			position: absolute;
 			text-align: center;
 			width: 720px;
 			height: 20px;
 			background: red;
 			color: white;
+			overflow: visible;
 		}
 
 	</style>
@@ -296,8 +305,9 @@
 		<div id="player">
 			
 		</div>
-		<div class="progress">
-			
+		<div class="progressWrap">
+			<div class="progress">	
+			</div>
 		</div>
 		<div id="mainWrap">
 			<div id="chatWrap">
@@ -444,10 +454,14 @@
 				return Math.floor(time - minutes(time) * 60).toLocaleString(undefined, {minimumIntegerDigits: 2})
 			}
 
+			function progressWidth() {
+				return Math.round((720/100) * ((getCurrentTime() / getVideoDuration())*100))
+			}
 
+			document.querySelector('.progress').setAttribute("style", "width:" + progressWidth() +"px");
 
 			document.querySelector('.progress').innerText = "(" + minutes(Math.round(getCurrentTime())) + ":" + seconds(Math.round(getCurrentTime())) + 
-			"/" + minutes(Math.round(getVideoDuration())) + ":" + seconds(Math.round(getVideoDuration())) + ")"
+			"\xA0/\xA0" + minutes(Math.round(getVideoDuration())) + ":" + seconds(Math.round(getVideoDuration())) + ")"
 
  			requestAnimationFrame(paintProgress)
 	}
