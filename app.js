@@ -39,7 +39,7 @@ io.on('connection', function(socket) {
 	socket.on('new user', function(data, callback) {
 		return getUsersFromDb()
 		.then(function() {
-			if (users.name.indexOf(data) > -1) {
+			if (users.name.indexOf(data.nick) > -1) {
 				callback(false);
 				console.log("No fam")
 			} 
@@ -92,8 +92,11 @@ io.on('connection', function(socket) {
 				}
 				console.log("yes im being excuted")
 				delete people[socket.nickname];
-				getUsersFromDb();
-				socket.broadcast.emit('user leave', {nick: socket.nickname});	
+				return getUsersFromDb()
+				.then(function() {
+					updateNicknames()
+					socket.broadcast.emit('user leave', {nick: socket.nickname});	
+				})
 			})
 			.catch(function(e) {
 				console.log("Error", e)
