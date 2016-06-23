@@ -10,6 +10,7 @@ var express = require('express'),
 	users = {
 		name: [],
 		vibes: [],
+		flag: [],
 	},
 	cue = {
 		id: [],
@@ -30,6 +31,8 @@ app.get('/', function(req, res){
 	res.sendFile(__dirname + '/index1.html');
 });
 
+app.use(express.static('public'));
+
 io.on('connection', function(socket) {
 	getCueFromDb();
 
@@ -42,11 +45,16 @@ io.on('connection', function(socket) {
 			} 
 			else {
 				callback(true);
-				socket.nickname = data;
+				socket.nickname = data.nick;
 				people[socket.nickname] = socket;
 				updateNicknames();
 				var user = new User();
-				user.name = data;
+				user.name = data.nick;
+				user.flag = data.flag;
+				// console.log(data.nick)
+				// console.log(data.flag)
+				// console.log(user.name)
+				// console.log(user.country)
 				user.save(function(err, data) {
 					if (err) {
 						console.log(err)	
@@ -184,7 +192,8 @@ io.on('connection', function(socket) {
 
 function updateNicknames(){
 	console.log("Update nicknames")
-	io.sockets.emit('usernames', {vibzer: users.name, numberofvibes: users.vibes});
+	console.log(users.name, users.vibes, users.flag)
+	io.sockets.emit('usernames', {vibzer: users.name, numberofvibes: users.vibes, flag: users.flag});
 }
 
 
@@ -197,6 +206,7 @@ var emptyCue = function() {
 var emptyUser = function() {
 	users.name = [];
 	users.vibes = [];
+	users.flag = [];
 }
 
 var getUsersFromDb = function() {
@@ -210,10 +220,13 @@ var getUsersFromDb = function() {
 			if (vibzers.length) {
 				emptyUser();
 				vibzers.forEach(function(vibzer) {
+					console.log(vibzer.flag)
 					users.name.push(vibzer.name); // push all the videos from db into cue array
 					users.vibes.push(vibzer.vibes);
+					users.flag.push(vibzer.flag);
 					if (users.vibes.length === vibzers.length) {
-						console.log(users.vibes, vibzer.vibes)
+						console.log("brap")
+						console.log(users.vibes, vibzer.vibes, vibzer.flag)
 						resolve();
 					}
 					// else {

@@ -2,6 +2,7 @@
 <head>
 	<title>Vibzin.com</title>
 	<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/2.3.1/css/flag-icon.min.css">
 	<script src="http://code.jquery.com/jquery-latest.min.js"></script>
 	<style>
 		*, *:before, *:after {
@@ -406,7 +407,9 @@
 						vibes: [],
 	    			},
 	    		},
-	    		usernames = []
+	    		usernames = [],
+	    		ip,
+	    		country
 
 
 	      var playerStates = {
@@ -511,6 +514,32 @@
 
  			requestAnimationFrame(paintProgress)
 		}
+
+		var getClientIp = function() {
+			return new Promise(function(resolve, reject) {
+				if(self.fetch) {
+					fetch('http://ipinfo.io/json', {
+						method: 'get'
+					})
+					.then(function(response) {
+						console.log(response)
+						return response.json();
+					})
+					.then(function(data) {
+						ip = data.ip
+						country = data.country.toLowerCase()
+						resolve();
+					})
+					.catch(function(err) {
+						console.log(err)
+						reject(err);
+					});
+				} else {
+					console.log("Fetch not supported in this browser")
+					reject("No support")
+				}
+			})
+		}
 			
 			var $nickForm = $('#setNick'),
 				$nickError = $('#nickError'),
@@ -556,12 +585,14 @@
 					url: 'https://www.googleapis.com/youtube/v3/search?q=' + $searchQuery.val() + '&maxResults=50&part=snippet&key=AIzaSyCt8JA0ZFnQ2F9qBBVN1ZyjMxxz5pMEthc'
 				}).done(function(data) {
 					$results.html('');
+					$results.scrollTop(0);
 					data.items.map(function(video) {
 						if (video.id.videoId === undefined) {
 							return
 						}
 						// console.log(video.id.videoId); videoID
 						// console.log(video.snippet.thumbnails.default.url); videoThumbnail
+
 						$results.append('<div class="resultContainer" id="' + video.id.videoId + '" title="' + video.snippet.title + '"><h3>' + video.snippet.title + '</h3><img class="resultThumbnails" src="' + video.snippet.thumbnails.medium.url + '"></div>');
 						$results.css("transform", "translateX(0)");
 						resultsWindow = true;
@@ -593,18 +624,22 @@
 			$nickForm.submit(function(e) {
 				if ($nickBox.val()) {
 					e.preventDefault();
-					socket.emit('new user', $nickBox.val(), function(data) {
-						if (data) {
-							handler();
-							$('.homeWrap').css("display", "none");
-							$('#contentWrap').css("display", "flex");
-						} else {
-							$nickError.html('That username is already taken!  Try again.');
-						}
+					getClientIp()
+					.then(function() {
+						var nick = $nickBox.val();
+						console.log(nick)
+						socket.emit('new user', {nick: nick, flag: country}, function(data) {
+							if (data) {
+								handler();
+								$('.homeWrap').css("display", "none");
+								$('#contentWrap').css("display", "flex");
+							} else {
+								$nickError.html('That username is already taken!  Try again.');
+							}
+						});
+						$nickBox.val('');
 					});
-					$nickBox.val('');
-				}
-				else {
+				} else {
 					e.preventDefault();
 				}
 			});
@@ -631,11 +666,14 @@
 			// });
 
 			socket.on('usernames', function(data) {
+				console.log(data)
 				usernames = data.vibzer;
 				$skip.val("Skip (" + skipped + "/" + Math.round(usernames.length / 2) + ")");
 				var html = '';
 				for(i=0; i < data.vibzer.length; i++) {
-					html += data.vibzer[i] + " (" + data.numberofvibes[i] + ")<br/>"
+					// <span class=".flag .flag-gb">
+					// html += '<span class=".flag .flag-' + data.flag[i] + '">' + data.vibzer[i] + ' (' + data.numberofvibes[i] + ')</span><br/>'
+					html += '<span class="flag-icon flag-icon-' + data.flag[i] + '"></span> ' + data.vibzer[i] + ' (' + data.numberofvibes[i] + ')<br/>'
 				}
 				$users.html(html);
 			});

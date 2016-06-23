@@ -18,6 +18,7 @@ var User = mongoose.model('User', {
 	vibes: {
 		type: Number, default: 1000
 	},
+	flag: String,
 });
 
 module.exports = {
