@@ -7,11 +7,7 @@ var express = require('express'),
 	Video = require('./js/db').Video,
 	User = require('./js/db').User,
 	people = {},
-	users = {
-		name: [],
-		vibes: [],
-		flag: [],
-	},
+	users = [],
 	cue = {
 		id: [],
 		title: [],
@@ -20,8 +16,19 @@ var express = require('express'),
 			vibes: [],
 		},
 	},
-	fired = false;
-	port = Number(process.env.PORT || 3000)
+	fired = false,
+	port = Number(process.env.PORT || 3000);
+
+function getUserNames(users) {
+  var userNames = users.map(function(user) {
+    if (user.name)
+      return user.name
+
+    throw Error("User does not have property name" + JSON.stringify(user))
+  })
+
+  return userNames
+}
 
 server.listen(port, function() {
 	console.log("now listening on: " + port);
@@ -39,10 +46,12 @@ io.on('connection', function(socket) {
 	socket.on('new user', function(data, callback) {
 		return getUsersFromDb()
 		.then(function() {
-			if (users.name.indexOf(data.nick) > -1) {
+      var userNames = getUserNames(users)
+
+			if (userNames.indexOf(data.nick) > -1) {
 				callback(false);
 				console.log("No fam")
-			} 
+			}
 			else {
 				callback(true);
 				socket.nickname = data.nick;
@@ -57,7 +66,7 @@ io.on('connection', function(socket) {
 				// console.log(user.country)
 				user.save(function(err, data) {
 					if (err) {
-						console.log(err)	
+						console.log(err)
 					}
 					else {
 						getUsersFromDb()
@@ -65,15 +74,15 @@ io.on('connection', function(socket) {
 							updateNicknames()
 						})
 						.catch(function(e) {
-							console.log("Error", e)
+							console.log("Error", e, e.stack)
 						})
 					}
 				});
 				socket.broadcast.emit('user join', {nick: socket.nickname});
-			} 
+			}
 		})
 		.catch(function(e) {
-			console.log("Error", e)
+			console.log("Error", e, e.stack)
 		})
 	});
 
@@ -86,20 +95,22 @@ io.on('connection', function(socket) {
 			return removeUser(socket.nickname)
 			.then(function() {
 				console.log("uno")
-				var index = users.name.indexOf(socket.nickname)
+        var userNames = getUserNames(users)
+				var index = userNames.indexOf(socket.nickname)
 				if (index > -1) {
-					users.name.splice(index, 1);
+					users.splice(index, 1);
 				}
 				console.log("yes im being excuted")
 				delete people[socket.nickname];
+
 				return getUsersFromDb()
 				.then(function() {
 					updateNicknames()
-					socket.broadcast.emit('user leave', {nick: socket.nickname});	
+					socket.broadcast.emit('user leave', {nick: socket.nickname});
 				})
 			})
 			.catch(function(e) {
-				console.log("Error", e)
+				console.log("Error", e, e.stack)
 			})
 		}
 	});
@@ -133,7 +144,7 @@ io.on('connection', function(socket) {
 		console.log(fired)
 		if (!fired) {
 			fired = true;
-			setTimeout(function() { 
+			setTimeout(function() {
 				fired = false;}, 3000);
 			return removeVideo(cue.id[0])
 				.then(function() {
@@ -146,7 +157,7 @@ io.on('connection', function(socket) {
 					console.log("Error", e)
 				})
 		}
-	});	
+	});
 
 	socket.on('send message', function(data, callback){
 		var msg = data.trim();
@@ -195,8 +206,12 @@ io.on('connection', function(socket) {
 
 function updateNicknames(){
 	console.log("Update nicknames")
-	console.log(users.name, users.vibes, users.flag)
-	io.sockets.emit('usernames', {vibzer: users.name, numberofvibes: users.vibes, flag: users.flag});
+	console.log(users)
+  var names = getUserNames(users)
+  var vibes = users.map(function(user) { return user.vibes })
+  var flag = users.map(function(user) { return user.flag })
+
+	io.sockets.emit('usernames', {vibzer: names, numberofvibes: vibes, flag: flag});
 }
 
 
@@ -207,9 +222,7 @@ var emptyCue = function() {
 }
 
 var emptyUser = function() {
-	users.name = [];
-	users.vibes = [];
-	users.flag = [];
+	users = [];
 }
 
 var getUsersFromDb = function() {
@@ -224,17 +237,14 @@ var getUsersFromDb = function() {
 				emptyUser();
 				vibzers.forEach(function(vibzer) {
 					console.log(vibzer.flag)
-					users.name.push(vibzer.name); // push all the videos from db into cue array
-					users.vibes.push(vibzer.vibes);
-					users.flag.push(vibzer.flag);
-					if (users.vibes.length === vibzers.length) {
+
+          users.push(vibzer)
+
+					if (users.length === vibzers.length) {
 						console.log("brap")
-						console.log(users.vibes, vibzer.vibes, vibzer.flag)
+						console.log(users)
 						resolve();
 					}
-					// else {
-					// 	console.log("fail", users.vibes.length, vibzers.length)
-					// }
 				});
 			} else {
 				resolve()
@@ -278,7 +288,7 @@ var getCueFromDb = function() {
 					io.sockets.emit('send cue', {cue: cue.id, title: cue.title, nick: cue.user.name});
 					resolve();
 				}
-		})	
+		})
 	})
 }
 
