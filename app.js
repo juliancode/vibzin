@@ -167,6 +167,9 @@ io.on('connection', function(socket) {
 	socket.on('bad vibe', function(data) {
 		return changeVibe('bad', data)
 		.then(function() {
+			return getUsersFromDb()
+		})
+		.then(function() {
 			updateNicknames();
 		})
 		.catch(function(e) {
