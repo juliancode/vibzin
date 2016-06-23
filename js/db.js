@@ -5,8 +5,23 @@ mongoose.connect(MONGODBURI);
 var Video = mongoose.model('Video', {
     id: String,
     title: String,
-    user: String,
+    user: {
+    	name: String,
+    }
 });
 
-module.exports.Video = Video;
+var User = mongoose.model('User', {
+	name: {
+		type: String,
+		unique: true,
+	},
+	vibes: {
+		type: Number, default: 1000
+	},
+});
+
+module.exports = {
+	Video,
+	User,
+};
 

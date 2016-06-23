@@ -5,10 +5,19 @@ var express = require('express'),
 	mongoose = require("mongoose"),
 	Promise = require("bluebird"),
 	Video = require('./js/db').Video,
-	users = {},
+	User = require('./js/db').User,
+	people = {},
+	users = {
+		name: [],
+		vibes: [],
+	},
 	cue = {
 		id: [],
 		title: [],
+		user: {
+			name: [],
+			vibes: [],
+		},
 	},
 	fired = false;
 	port = Number(process.env.PORT || 3000)
@@ -25,27 +34,68 @@ io.on('connection', function(socket) {
 	getCueFromDb();
 
 	socket.on('new user', function(data, callback) {
-		if (data in users) {
-			callback(false);
-		} else {
-			callback(true);
-			socket.nickname = data;
-			users[socket.nickname] = socket;
-			updateNicknames();
-			socket.broadcast.emit('user join', {nick: socket.nickname});
-		} 
+		return getUsersFromDb()
+		.then(function() {
+			if (users.name.indexOf(data) > -1) {
+				callback(false);
+				console.log("No fam")
+			} 
+			else {
+				callback(true);
+				socket.nickname = data;
+				people[socket.nickname] = socket;
+				updateNicknames();
+				var user = new User();
+				user.name = data;
+				user.save(function(err, data) {
+					if (err) {
+						console.log(err)	
+					}
+					else {
+						getUsersFromDb()
+						.then(function() {
+							updateNicknames()
+						})
+						.catch(function(e) {
+							console.log("Error", e)
+						})
+					}
+				});
+				socket.broadcast.emit('user join', {nick: socket.nickname});
+			} 
+		})
+		.catch(function(e) {
+			console.log("Error", e)
+		})
 	});
 
 	socket.on('disconnect', function(data) {
-		if(!socket.nickname) return;
-		delete users[socket.nickname];
-		updateNicknames();
-		socket.broadcast.emit('user leave', {nick: socket.nickname});
+		if (!socket.nickname) {
+			console.log("No socket nickname")
+			return
+		}
+		else {
+			return removeUser(socket.nickname)
+			.then(function() {
+				console.log("uno")
+				var index = users.name.indexOf(socket.nickname)
+				if (index > -1) {
+					users.name.splice(index, 1);
+				}
+				console.log("yes im being excuted")
+				delete people[socket.nickname];
+				getUsersFromDb();
+				socket.broadcast.emit('user leave', {nick: socket.nickname});	
+			})
+			.catch(function(e) {
+				console.log("Error", e)
+			})
+		}
 	});
 
 	socket.on('vote skip', function(data) {
 		console.log(data)
-		if (data.skipvotes >= Math.round(Object.keys(users).length)/2) {
+		if (data.skipvotes >= Math.round(Object.keys(people).length)/2) {
 			io.sockets.emit('skip', {skip: true, skipvotes: data.skipvotes, username: socket.nickname})
 		} else {
 			io.sockets.emit('skip', {skip: false, skipvotes: data.skipvotes, username: socket.nickname})
@@ -54,10 +104,8 @@ io.on('connection', function(socket) {
 
 	socket.on('new video', function(data) {
 		console.log("New video")
-		// var addToCueP = Promise.promisify(addToCue)
-		// var getCueFromDbP = Promise.promisify(getCueFromDb)
 
-		return addToCue(data.id, data.title)
+		return addToCue(data.id, data.title, socket.nickname)
 		.then(function() {
 			return getCueFromDb();
 		})
@@ -69,17 +117,6 @@ io.on('connection', function(socket) {
 			console.log("Error", e)
 		})
 	});
-
-	// socket.on('new video', function(data) {
-	// 	console.log("New video")
-
-	// 	Promise.join(addToCue(data.id, socket.nickname), getCueFromDb(), function() {
-	// 		console.log("Emit change video")
-	// 		io.sockets.emit('change video', {id: data.id, title: data.title, nick: socket.nickname});
-	// 	}).catch(function(e) {
-	// 		console.log("error", e)
-	// 	});
-	// });
 
 	socket.on('play next video', function() {
 		console.log(fired)
@@ -94,28 +131,15 @@ io.on('connection', function(socket) {
 				.then(function() {
 					io.sockets.emit('next video');
 				})
+				.catch(function(e) {
+					console.log("Error", e)
+				})
 		}
 	});	
 
-	// socket.on('play next video', function() {
-	// 	Promise.join(removeVideo(cue[0]), getCueFromDb(), function() {
-	// 		console.log("Emit next video")
-	// 		io.sockets.emit('next video');
-	// 	});
-	// });	
-
 	socket.on('send message', function(data, callback){
-		if (data === '!empty') {
-			dropDb(function(err) { 
-				err ? console.log(err) : getCueFromDb(function() {
-					var msg = data.trim();
-					io.sockets.emit('new message', {msg: msg, nick: socket.nickname});
-				});
-			})
-		} else {
-			var msg = data.trim();
-			io.sockets.emit('new message', {msg: msg, nick: socket.nickname});
-		}
+		var msg = data.trim();
+		io.sockets.emit('new message', {msg: msg, nick: socket.nickname});
 	});
 
 	socket.on('pause video', function(data) {
@@ -126,65 +150,117 @@ io.on('connection', function(socket) {
 		io.sockets.emit('play video');
 	});
 
+	socket.on('good vibe', function(data) {
+		console.log(data)
+		return changeVibe('good', data)
+		.then(function() {
+			return getUsersFromDb()
+		})
+		.then(function() {
+			return updateNicknames();
+		})
+		.catch(function(e) {
+			console.log("Error", e)
+		})
+	});
+
+	socket.on('bad vibe', function(data) {
+		return changeVibe('bad', data)
+		.then(function() {
+			updateNicknames();
+		})
+		.catch(function(e) {
+			console.log("Error", e)
+		})
+	});
 });
 
+// function updateNicknames(){
+// 	io.sockets.emit('usernames', Object.keys(people));
+// }
+
 function updateNicknames(){
-	io.sockets.emit('usernames', Object.keys(users));
+	console.log("Update nicknames")
+	io.sockets.emit('usernames', {vibzer: users.name, numberofvibes: users.vibes});
 }
 
-var getCueFromDb = function(callback) {
+
+var emptyCue = function() {
+	cue.id = []; // empty array
+	cue.title = [];
+	cue.user.name = [];
+}
+
+var emptyUser = function() {
+	users.name = [];
+	users.vibes = [];
+}
+
+var getUsersFromDb = function() {
+	console.log("getUsersFromDb")
+	return new Promise(function(resolve, reject) {
+		User.find({}).exec(function(err, vibzers) {
+			if (err) {
+				console.log(err);
+				reject(err);
+			}
+			if (vibzers.length) {
+				emptyUser();
+				vibzers.forEach(function(vibzer) {
+					users.name.push(vibzer.name); // push all the videos from db into cue array
+					users.vibes.push(vibzer.vibes);
+					if (users.vibes.length === vibzers.length) {
+						console.log(users.vibes, vibzer.vibes)
+						resolve();
+					}
+					// else {
+					// 	console.log("fail", users.vibes.length, vibzers.length)
+					// }
+				});
+			} else {
+				resolve()
+			}
+		});
+	});
+}
+
+var removeUser = function(nick) {
+	console.log(nick)
+	return new Promise(function(resolve, reject) {
+		User.find({'name' : nick}).remove(function(err, data) {
+			if (err)
+				reject(err);
+			else {
+				console.log("Remove user")
+				resolve();
+			}
+		});
+	})
+}
+
+var getCueFromDb = function() {
 	return new Promise(function(resolve, reject) {
 		Video.find({}).exec(function(err, videos) {
 				if (err) {
 					reject(err);
 				}
 				if (videos.length) {
-
-					cue.id = []; // empty array
-					cue.title = [];
+					emptyCue();
 					videos.forEach(function(video) {
 						cue.id.push(video.id) // push all the videos from db into cue array
 						cue.title.push(video.title)
+						cue.user.name.push(video.user.name)
 					});
-					console.log(cue)
-					io.sockets.emit('send cue', {cue: cue.id, title: cue.title});
-					console.log("getCueFromDb", cue.id)
+					io.sockets.emit('send cue', {cue: cue.id, title: cue.title, nick: cue.user.name});
 					resolve();
-					if (callback) {
-						callback();
-						return
-					}
-					else {
-						return
-					}
 				}
 				else {
-					cue.id = [];
-					cue.title = [];
-					io.sockets.emit('send cue', {cue: cue.id, title: cue.title});
-					console.log(cue)
-					console.log("getCueFromDb (no videos)", cue.id)
+					emptyCue();
+					io.sockets.emit('send cue', {cue: cue.id, title: cue.title, nick: cue.user.name});
 					resolve();
-					if (callback)
-						callback()
-					else
-						return
 				}
 		})	
 	})
-}
-
-var dropDb = function(callback) {
-	Video.find({}).remove(function(err, data) {
-		if (err)
-			console.log(err)
-		else 
-			return
-		if (callback)
-			callback();
-		else
-			return
-	});
 }
 
 var removeVideo = function(id) {
@@ -200,13 +276,14 @@ var removeVideo = function(id) {
 	})
 }
 
-var addToCue = function(id, title) {
+var addToCue = function(id, title, nick) {
 	console.log("Add to cue")
 	return new Promise(function(resolve, reject) {
 		var video = new Video();
 		console.log(title)
 		video.id = id;
 		video.title = title;
+		video.user.name = nick;
 		video.save(function(err, data) {
 			if (err) {
 				reject(err);
@@ -215,4 +292,31 @@ var addToCue = function(id, title) {
 			}
 		});
 	})
+}
+
+var changeVibe = function(vibe, nick) {
+	if (vibe === "good") {
+		console.log("Good vibe")
+		return new Promise(function(resolve, reject) {
+			User.findOneAndUpdate({ 'name': nick}, { $inc: { vibes: 1 } }, { new: true }, function(err, doc) {
+				if (err) {
+					reject(err);
+				} else {
+					resolve();
+				}
+			});
+		});
+	}
+	if (vibe === "bad") {
+		console.log("Good vibe")
+		return new Promise(function(resolve, reject) {
+			User.findOneAndUpdate({ 'name': nick}, { $inc: { vibes: -1 } }, { new: true }, function(err, doc) {
+				if (err) {
+					reject(err);
+				} else {
+					resolve();
+				}
+			});
+		});
+	}
 }

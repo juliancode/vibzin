@@ -2,6 +2,7 @@
 <head>
 	<title>Vibzin.com</title>
 	<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
+	<script src="http://code.jquery.com/jquery-latest.min.js"></script>
 	<style>
 		*, *:before, *:after {
 			box-sizing: border-box;
@@ -105,6 +106,7 @@
 		#results {
 			height: 100%;
 			width: 370px;
+			/*width: 100%;*/
 			position: absolute;
 			top: 0;
 			left: 0;
@@ -145,6 +147,9 @@
 		}
 
 		.uiWrap {
+			display: flex;
+			align-items: flex-end;
+			flex-flow: row wrap;
 			background: white;
 			position: absolute;
 			left: 719px;
@@ -158,18 +163,35 @@
 			overflow-y: auto;
 		}
 
-		.uiWrap .skip {
+		.uiWrap span {
+			width: 100%;
+			height: 259px;
+		}
+
+		.uiWrap .good, .uiWrap .bad, .uiWrap .skip {
+			align-self: flex-end;
 			cursor: pointer;
 			outline: none;
 			border: 0;
 			color: white;
 			width: 100%;
 			height: 50px;
-			background: red;
 			font-size: 18px;
 		}
+		
+		.uiWrap .good {
+			background: green;
+		}
 
-		.uiWrap .skip:disabled {
+		.uiWrap .bad {
+			background: red;
+		}
+
+		.uiWrap .skip {
+			background: darkblue;
+		}
+
+		.uiWrap .good:disabled, .uiWrap .bad:disabled, .uiWrap .skip:disabled  {
 			cursor: default;
 			width: 100%;
 			height: 50px;
@@ -272,16 +294,40 @@
 		.progress {
 			position: absolute;
 			text-align: center;
-			width: 720px;
+			width: 0px;
 			height: 20px;
 			background: red;
 			color: white;
 			overflow: visible;
+			transition: width 0.5s;
+		}
+
+		.theme {
+			position: absolute;
+			top: 10px;
+			left: 10px;
+		}
+
+		.theme ul { 
+			list-style-type: none;
+		}
+
+		.theme ul li {
+			display: inline;
 		}
 
 	</style>
 </head>
 <body>
+	<!-- <div class="theme">
+		<ul>
+			<li class="black">black</li>
+			<li class="white">white</li>
+			<li class="red">red</li>
+			<li class="blue">blue</li>
+			<li class="grey">grey</li>
+		</ul>
+	</div> -->
 	<div class="homeWrap">
 		<div id="nickWrap">
 			<h1 style="padding-top: 20px 0px;">~Vibzin~</h1>
@@ -316,6 +362,9 @@
 			<div id="users">
 			</div>
 			<div class="uiWrap">
+				<span>&nbsp;</span>
+				<input type="button" value="Good Vibe +1" class="good">
+				<input type="button" value="Bad Vibe -1" class="bad">
 				<input type="button" value="Skip" class="skip">
 			</div>
 			<div class="cueWrap">
@@ -331,12 +380,12 @@
 
 
 	
-	<script src="http://code.jquery.com/jquery-latest.min.js"></script>
 	<script src="/socket.io/socket.io.js"></script>
 	<script src="https://www.youtube.com/iframe_api"></script>
 	<script> 
 	var skipped = 0;
-	var fired = false;
+	var skipFired = false;
+	var vibeFired = false;
 	var socket = io.connect();
 	
 	//YouTube iFrame Player API
@@ -351,7 +400,11 @@
 	    	var player = undefined,
 	    		cue = { 
 	    			id: [],
-	    			title: []
+	    			title: [],
+	    			user: {
+	    				name: [],
+						vibes: [],
+	    			},
 	    		},
 	    		usernames = []
 
@@ -402,7 +455,9 @@
 	      		break;
 	      	case 0:
 	      		console.log("ended")
-	      		skipped = 0
+	      		resetUi();
+	      		// $chat.append(cue.title[0] + " has finished " + cue.user.name[0] + " received *vibes* " + "new rating is " + cue.user.vibes[0] + "</br>")
+	      		// $chat.scrollTop(document.getElementById("chat").scrollHeight);
 	      		socket.emit('play next video')
 	      		break;
 	      	case 1:
@@ -422,16 +477,6 @@
 	    }
 	}
 	      
-
-	// function playVideoNow(id) {
-	// 	player.loadVideoById(id)
-	// 	player.playVideo()
-	// }
-
-	// function addToCue(id) {(
-		// 	cue.push(id)
-		// 	player.loadVideoById(cue[0])
-		// }
 	
 		function stopVideo() {
 			player.stopVideo()
@@ -456,17 +501,16 @@
 
 			function progressWidth() {
 				return Math.round((720/100) * ((getCurrentTime() / getVideoDuration())*100))
+				// Percentage code, janky..
+				// return (getCurrentTime() / getVideoDuration())*100
 			}
 
-			document.querySelector('.progress').setAttribute("style", "width:" + progressWidth() +"px");
-
+			document.querySelector('.progress').setAttribute("style", "width:" + progressWidth() +"px"); // Animates progress bar
 			document.querySelector('.progress').innerText = "(" + minutes(Math.round(getCurrentTime())) + ":" + seconds(Math.round(getCurrentTime())) + 
-			"\xA0/\xA0" + minutes(Math.round(getVideoDuration())) + ":" + seconds(Math.round(getVideoDuration())) + ")"
+			"\xA0/\xA0" + minutes(Math.round(getVideoDuration())) + ":" + seconds(Math.round(getVideoDuration())) + ")"; // Updates time
 
  			requestAnimationFrame(paintProgress)
-	}
-
-		jQuery(function($) {
+		}
 			
 			var $nickForm = $('#setNick'),
 				$nickError = $('#nickError'),
@@ -483,12 +527,13 @@
 				$skip = $('.skip'),
 				$cue = $('#cue'),
 				$progress = $('.progress'),
+				$good = $('.good'),
+				$bad = $('.bad'),
+				
 				resultsWindow = false;
 
-	
-
 		function handler() {
-			fired = true;
+			skipFired = true;
 
 			// $chat.append("handler()</br>")
 			// $chat.scrollTop(document.getElementById("chat").scrollHeight);
@@ -501,14 +546,14 @@
 				console.log("No videos in client side cue")
 			}
 
-			setTimeout(function(){ fired = false; }, 3000);
+			setTimeout(function(){ skipFired = false; }, 3000);
 		}
 			// Ajax calls to YouTube API
 
 			$searchForm.submit(function(e) {
 				e.preventDefault();
 				$.ajax({
-					url: 'https://www.googleapis.com/youtube/v3/search?q=' + $searchQuery.val() + '&part=snippet&key=AIzaSyCt8JA0ZFnQ2F9qBBVN1ZyjMxxz5pMEthc'
+					url: 'https://www.googleapis.com/youtube/v3/search?q=' + $searchQuery.val() + '&maxResults=50&part=snippet&key=AIzaSyCt8JA0ZFnQ2F9qBBVN1ZyjMxxz5pMEthc'
 				}).done(function(data) {
 					$results.html('');
 					data.items.map(function(video) {
@@ -548,9 +593,9 @@
 			$nickForm.submit(function(e) {
 				if ($nickBox.val()) {
 					e.preventDefault();
-					handler();
 					socket.emit('new user', $nickBox.val(), function(data) {
 						if (data) {
+							handler();
 							$('.homeWrap').css("display", "none");
 							$('#contentWrap').css("display", "flex");
 						} else {
@@ -575,12 +620,22 @@
 				$chat.scrollTop(document.getElementById("chat").scrollHeight);
 			});			
 			
+			// socket.on('usernames', function(data) {
+			// 	usernames = data;
+			// 	$skip.val("Skip (" + skipped + "/" + Math.round(usernames.length / 2) + ")");
+			// 	var html = '';
+			// 	for(i=0; i < data.length; i++) {
+			// 		html += data[i] + '<br/>'
+			// 	}
+			// 	$users.html(html);
+			// });
+
 			socket.on('usernames', function(data) {
-				usernames = data;
+				usernames = data.vibzer;
 				$skip.val("Skip (" + skipped + "/" + Math.round(usernames.length / 2) + ")");
 				var html = '';
-				for(i=0; i < data.length; i++) {
-					html += data[i] + '<br/>'
+				for(i=0; i < data.vibzer.length; i++) {
+					html += data.vibzer[i] + " (" + data.numberofvibes[i] + ")<br/>"
 				}
 				$users.html(html);
 			});
@@ -593,14 +648,35 @@
 				$messageBox.val('');
 			});
 
+			var resetUi = function() {
+				skipped = 0;
+				$skip.val("Skip (" + skipped + "/" + Math.round(usernames.length / 2) + ")");
+				$good.attr("disabled", false);
+				$bad.attr("disabled", false);
+				$skip.attr("disabled", false);
+			}
+
+			var disableVibeButtons = function() {
+				$good.attr("disabled", true);
+				$bad.attr("disabled", true);
+			}
+
+			$good.click(function() {
+				if (!vibeFired) {
+					disableVibeButtons()
+					console.log(cue.user.name[0])
+					socket.emit('good vibe', cue.user.name[0]);
+				}
+			})
+
 			$skip.click(function() {
-				if (!fired) {
-					console.log("not fired")
+				if (!skipFired) {
+					console.log("not skipFired")
 					$(this).attr("disabled", true);
 					skipped++;
 					socket.emit('vote skip', {skipvotes: skipped});
 				}
-				if (fired) {
+				if (skipFired) {
 					$chat.append('<span class="error">You can\'t skip so soon please wait!</span></br>')
 					$chat.scrollTop(document.getElementById("chat").scrollHeight);
 				}
@@ -615,9 +691,9 @@
 					$chat.scrollTop(document.getElementById("chat").scrollHeight);
 					$chat.append('<span class="whisper error"><b>' + cue.title[0] + "</b> has been skipped</br>");
 					$chat.scrollTop(document.getElementById("chat").scrollHeight);
-					skipped = 0;
-					$skip.val("Skip (" + skipped + "/" + Math.round(usernames.length / 2) + ")");
-					$skip.attr("disabled", false);
+					resetUi();
+					// $chat.append(cue.title[0] + " has finished " + cue.user.name[0] + " received *vibes* " + "new rating is ...</br>")
+					// $chat.scrollTop(document.getElementById("chat").scrollHeight);
 					socket.emit('play next video');
 				} else {
 					skipped = data.skipvotes
@@ -669,6 +745,7 @@
 				// $chat.scrollTop(document.getElementById("chat").scrollHeight);
 				cue.id = data.cue;
 				cue.title = data.title;
+				cue.user.name = data.nick;
 				console.log(data.title)
 				if (cue.title) {
 					$cue.empty(); 
@@ -684,11 +761,8 @@
 			});
 
 			socket.on('next video', function() {
-				// $chat.append("next video</br>")
-				// $chat.scrollTop(document.getElementById("chat").scrollHeight);
 				handler();
 			});
-		});
 	</script>
 </body>
 </html>
