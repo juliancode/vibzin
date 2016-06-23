@@ -669,6 +669,14 @@
 				}
 			})
 
+			$bad.click(function() {
+				if (!vibeFired) {
+					disableVibeButtons()
+					console.log(cue.user.name[0])
+					socket.emit('bad vibe', cue.user.name[0]);
+				}
+			})
+
 			$skip.click(function() {
 				if (!skipFired) {
 					console.log("not skipFired")
