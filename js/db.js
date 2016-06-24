@@ -2,7 +2,7 @@ var mongoose = require("mongoose"),
 	MONGODBURI = "mongodb://heroku_nt5vtnbx:47egirav8vfqp82ac3hg5i8qt9@ds053794.mlab.com:53794/heroku_nt5vtnbx";
 mongoose.connect(MONGODBURI);
 
-var Video = mongoose.model('Video', {
+var Cue = mongoose.model('Cue', {
     id: String,
     title: String,
     user: {
@@ -22,7 +22,7 @@ var User = mongoose.model('User', {
 });
 
 module.exports = {
-	Video,
+	Cue,
 	User,
 };
 

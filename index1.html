@@ -3,556 +3,256 @@
 	<title>Vibzin.com - BETA</title>
 	<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/2.3.1/css/flag-icon.min.css">
+	<link rel="stylesheet" href="/css/style.css">
 	<script src="http://code.jquery.com/jquery-latest.min.js"></script>
-	<style>
-		*, *:before, *:after {
-			box-sizing: border-box;
-			margin: 0;
-			padding: 0;
-		}
-
-		body {
-			font-family: Arial;
-			background-color: #f9effe;
-		}
-
-		#chat{
-			height: 300px;
-			background-color: white;
-			overflow-y: auto;
-			overflow-x: hidden;
-			padding: 0 5px;
-			padding-bottom: 10px;
-			font-family: Arial;
-		}
-
-		#contentWrap {
-			width: 720px;
-			margin: 0 auto;
-			display: none;
-			flex-direction: column;
-		}
-
-		#chatWrap{
-			width: 520px;
-		}
-
-		#users {
-			width: 200px;
-			background-color: white;
-			padding: 0 10px;
-			border-left: 1px solid #aaa;
-			font-family: Arial;
-		}
-
-		.whisper {
-			color: gray;
-			font-style: italic;
-		}
-
-		.error {
-			color: red;
-		}
-		
-		.bold {
-			font-weight: bold;
-		}
-
-		#send-message {
-			overflow: hidden;
-			white-space: nowrap;
-		}
-
-		#message {
-			width: 720px;
-			height: 50px;
-			padding: 10px;
-			border: 1px solid #aaa;
-			border-top: 0;
-			overflow-y: auto;
-		}
-
-		button.send {
-			height: 50px;
-			width: 100px;
-			margin-left: -104px;
-		}
-
-		#search {
-			width: 720px;
-			height: 50px;
-			padding: 15px;
-			font-size: 17pt;
-			border: 1px solid #ccc;
-		}
-
-		#searchForm {
-			width: 720px;
-			overflow: hidden;
-			margin: 10px 0;
-			white-space: nowrap;
-		}
-
-		button.icon {
-			width: 50px;
-			height: 50px;
-			margin-left: -54px;
-			position: relative;
-			top: 2px;
-			padding: 15px;
-			border: 1px solid #ccc;
-			font-size: 17pt;
-		}
-
-		#results {
-			height: 100%;
-			width: 370px;
-			/*width: 100%;*/
-			position: absolute;
-			top: 0;
-			left: 0;
-			transform: translateX(-100%);
-			transition: all 0.25s;
-			background: #222;
-			overflow-y: auto;
-			z-index: 20;
-		}
-
-		.resultThumbnails {
-			/*display: inline;*/
-		}
-
-		.resultContainer {
-			padding: 25px;
-			padding-top: 20px;
-			padding-bottom: 40px;
-			cursor: pointer;
-		}
-
-		.resultContainer:hover {
-			background: #444;
-		}
-
-		h3 {
-			font-family: Arial, sans;
-			color: #fff;
-			text-align: center;
-			margin-bottom: 10px;
-		}
-
-		#mainWrap {
-			position: relative;
-			width: 720px;
-			display: flex;
-			border: 1px solid #aaa;
-		}
-
-		.uiWrap {
-			display: flex;
-			align-items: flex-end;
-			flex-flow: row wrap;
-			background: white;
-			position: absolute;
-			left: 719px;
-			top: -411px;
-			width: 400px;
-			height: 410px;
-			/*padding: 5px;*/
-			border: 1px solid #aaa;
-			border-left: 0;
-			border-bottom: 0;
-			overflow-y: auto;
-		}
-
-		.uiWrap span {
-			width: 100%;
-			height: 259px;
-		}
-
-		.uiWrap .good, .uiWrap .bad, .uiWrap .skip {
-			align-self: flex-end;
-			cursor: pointer;
-			outline: none;
-			border: 0;
-			color: white;
-			width: 100%;
-			height: 50px;
-			font-size: 18px;
-		}
-		
-		.uiWrap .good {
-			background: green;
-		}
-
-		.uiWrap .bad {
-			background: red;
-		}
-
-		.uiWrap .skip {
-			background: darkblue;
-		}
-
-		.uiWrap .good:disabled, .uiWrap .bad:disabled, .uiWrap .skip:disabled  {
-			cursor: default;
-			width: 100%;
-			height: 50px;
-			background: grey;
-			font-size: 18px;
-		}
-
-		.cueWrap {
-			background: white;
-			position: absolute;
-			left: 719px;
-			top: -1px;
-			width: 400px;
-			height: 352px;
-			border: 1px solid #aaa;
-			border-left: 0;
-			overflow-y: auto;
-		}
-
-		.cueWrap ul {
-			margin: 0;
-			padding: 0;
-			list-style-type: none;
-		}
-
-		.cueWrap ul li {
-			margin: 0;
-			padding: 10px 20px;
-			list-style-type: none;
-		}
-
-		.cueWrap ul li:first-of-type {
-			font-weight: bold;
-		}
-		
-		.cueWrap ul li:first-of-type:before {
-			content: "► ";
-		}
-
-		.cueWrap ul li:nth-of-type(odd) {
-			background: #eee;
-		}
-	
-		.cueWrap ul li:nth-of-type(even) {
-			
-		}
-
-		.homeWrap {
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			height: 100%;
-		}
-
-		#nickWrap {
-			display: flex;
-			flex-flow: column wrap;
-			align-items: center;
-			justify-content: center;
-			background: white;
-			border-radius: 5px;
-			width: 540px;
-			height: 400;
-		}
-
-		#setNick {
-			display: flex;
-			flex-flow: column wrap;
-			align-items: center;
-			justfy-content: center;
-		}
-
-		#nickname {
-			font-size: 18px;
-			padding: 10px 20px;
-		}
-
-		input[type="submit"] {
-			font-size: 18px;
-			cursor: pointer;
-			background: white;
-			padding: 5px 10px;
-			margin: 10px 0;
-			border: 2px solid black;
-		}
-
-		input[type="submit"]:hover {
-			background: black;
-			color: white;
-			border: 2px solid white;
-		}
-
-		.progressWrap {
-			width: 520px;
-			height: 20px;
-			background: darkred;
-			position: relative;
-		}
-
-		.progress {
-			position: absolute;
-			text-align: center;
-			width: 0px;
-			height: 20px;
-			background: red;
-			color: white;
-			overflow: visible;
-			transition: width 0.5s;
-		}
-
-		.theme {
-			position: absolute;
-			top: 10px;
-			left: 10px;
-		}
-
-		.theme ul { 
-			list-style-type: none;
-		}
-
-		.theme ul li {
-			display: inline;
-		}
-
-	</style>
 </head>
 <body>
-	<div class="homeWrap">
-		<div id="nickWrap">
-			<h1 style="padding-top: 20px 0px;">~Vibzin~</h1>
-			<p id="nickError"></p>
-			<img src="https://media.giphy.com/media/YlD8c1eiz9Pzi/giphy.gif" style="width: 325px; height: auto; margin: 20px;">
-			<form id="setNick">
-				<input id="nickname" autocomplete="off" placeholder="Enter your name"></input>
-				<input type="submit" value="Enter"></input>
-			</form>
-		</div>
-	</div>
-
-	<div id="contentWrap">
-		<form id="searchForm">
-			<input type="text" id="search" autocomplete="off" placeholder="Search for a video or enter URL..."></input>
-			<button class="icon"><i class="fa fa-search"></i></button>
+<div class="homeWrap">
+	<div id="nickWrap">
+		<h1 style="padding-top: 20px 0px;">~Vibzin~</h1>
+		<p id="nickError"></p>
+		<img src="https://media.giphy.com/media/YlD8c1eiz9Pzi/giphy.gif" style="width: 325px; height: auto; margin: 20px;">
+		<form id="setNick">
+			<input id="nickname" autocomplete="off" placeholder="Enter your name"></input>
+			<input type="submit" value="Enter"></input>
 		</form>
-		<div id="results">
-			
-		</div>
-		<div id="player">
-			
-		</div>
+	</div>
+</div>
+
+<div id="contentWrap">
+	<form id="searchForm">
+		<input type="text" id="search" autocomplete="off" placeholder="Search for a video or enter URL..."></input>
+		<button class="icon"><i class="fa fa-search" aria-hidden="true"></i></button>
+	</form>
+	<div id="results">
+		
+	</div>
+	<div id="player">
+		
+	</div>
+	<div class="videoUi">
 		<div class="progressWrap">
 			<div class="progress">	
 			</div>
 		</div>
-		<input type="range" name="points" min="0" max="10" class="volumeSlider">
-		<div id="mainWrap">
-			<div id="chatWrap">
-				<div id="chat"></div>
-			</div>
-			<div id="users">
-			</div>
-			<div class="uiWrap">
-				<span>&nbsp;</span>
-				<input type="button" value="Good Vibe +1" class="good">
-				<input type="button" value="Bad Vibe -1" class="bad">
-				<input type="button" value="Skip" class="skip">
-			</div>
-			<div class="cueWrap">
-				<ul id="cue">
-				</ul>
-			</div>
-		</div>
-		<form id="send-message" autocomplete="off">
-			<input size="35" id="message"></input>
-			<button class="send">Send</button>
-		</form>
+		<i class="mute fa fa-volume-off" aria-hidden="true"></i>
+		<input type="range" name="points" min="0" max="100" class="volumeSlider" 
+		onchange="setVolume(this.value)" oninput="setVolume(this.value)">
 	</div>
+	<div id="mainWrap">
+		<div id="chatWrap">
+			<div id="chat"></div>
+		</div>
+		<div id="users">
+		</div>
+		<div class="uiWrap">
+			<span>&nbsp;</span>
+			<input type="button" value="Good Vibe +1" class="good">
+			<input type="button" value="Bad Vibe -1" class="bad">
+			<input type="button" value="Skip" class="skip">
+		</div>
+		<div class="cueWrap">
+			<ul id="cue">
+			</ul>
+		</div>
+	</div>
+	<form id="send-message" autocomplete="off">
+		<input size="35" id="message"></input>
+		<button class="send">Send</button>
+	</form>
+</div>
 
+<script src="/socket.io/socket.io.js"></script>
+<script>
+var skipped = 0,
+hasSkipped = false,
+vibeFired = false,
+socket = io.connect();
 
+// Code for loading YouTUbe API asynchronously
+
+var tag = document.createElement('script');
+tag.src = "https://www.youtube.com/iframe_api";
+var firstScriptTag = document.getElementsByTagName('script')[0];
+firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+var player,
+cue = [],
+users = [],
+ip,
+country,
+playerStates = {
+	unstarted: -1, 
+	ended: 0,
+	playing: 1,
+	paused: 2,
+	buffering: 3,
+	videoCued: 5
+}
+
+function onYouTubeIframeAPIReady() {
 	
-	<script src="/socket.io/socket.io.js"></script>
-	<script src="https://www.youtube.com/iframe_api"></script>
-	<script>
-	var skipped = 0;
-	var skipFired = false;
-	var vibeFired = false;
-	var socket = io.connect();
-	
-	//YouTube iFrame Player API
-	// 2. This code loads the IFrame Player API code asynchronously.
-	      var tag = document.createElement('script');
-	      tag.src = "https://www.youtube.com/iframe_api";
-	      var firstScriptTag = document.getElementsByTagName('script')[0];
-	      firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+	var id;
+	if (cue.length) 
+		id = cue[0].id // If theres a cue start the player with the first item in cue
 
-	      // 3. This function creates an <iframe> (and YouTube player)
-	      //    after the API code downloads.
-	    	var player = undefined,
-	    		cue = [],
-	    		usernames = [],
-	    		ip,
-	    		country
-
-
-	      var playerStates = {
-	      	unstarted: -1, 
-	      	ended: 0,
-	      	playing: 1,
-	      	paused: 2,
-	      	buffering: 3,
-	      	videoCued: 5
-	      }
-
-	    function onYouTubeIframeAPIReady() {
-	    	var id;
-	    	if (cue.length) {
-	    		id = cue[0].id
-	    	}
-	      	player = new YT.Player('player', {
-				height: '390',
-				width: '720',
-				videoId: id,
-				playerVars: {
-					'controls': 0,
-					'rel': 0,
-					'disablekb': 1,
-					'modestbranding': 1
-				},
-				events: {
+		player = new YT.Player('player', {
+			height: '390',
+			width: '720',
+			videoId: id,
+			playerVars: {
+				'controls': 0,
+				'rel': 0,
+				'disablekb': 1,
+				'modestbranding': 1
+			},
+			events: {
 				'onReady': onPlayerReady,
 				'onStateChange': onPlayerStateChange
-				}
-			});
-	 	}
+			}
+		});
+}
 
-	    // 4. The API will call this function when the video player is ready.
-	    function onPlayerReady(event) {
-	      	// setTimeout(handler, 3000);
-		}
-
-	      // 5. The API calls this function when the player's state changes.
-	      //    The function indicates that when playing a video (state=1),
-	      //    the player should play for six seconds and then stop.
-
-	      // Pause, change time
-
-	function onPlayerStateChange(event) {
-
-		switch(player.getPlayerState()) {
-	    	case -1:
-	      		console.log("unstarted")
-	      		break;
-	      	case 0:
-	      		console.log("ended")
-	      		resetUi();
-	      		// $chat.append(cue.title[0] + " has finished " + cue.user.name[0] + " received *vibes* " + "new rating is " + cue.user.vibes[0] + "</br>")
-	      		// $chat.scrollTop(document.getElementById("chat").scrollHeight);
-	      		socket.emit('play next video')
-	      		break;
-	      	case 1:
-	      		console.log("play")
-	      		socket.emit('play video')
-	      		requestAnimationFrame(paintProgress)
-	      		break;
-	      	case 2:
-	      		console.log("pause")
-	      		socket.emit('pause video')
-	      		break;
-	      	case 3:
-	      		console.log("buffering")
-	      		break;
-	      	case 5:
-	      		console.log("video cued")
-	    }
+function onPlayerReady() {
+	setVolume(getVolume())
+	if (getVolume() > 0) {
+		$('.mute').removeClass('fa-volume-off').addClass('fa-volume-down')
+	} else {
+		$('.mute').removeClass('fa-volume-down').addClass('fa-volume-off')
 	}
-	      
-	
-		function stopVideo() {
-			player.stopVideo()
-		} 
-	
-		function getVideoDuration() {
-			return player.getDuration()
-		}
-	
-		function getCurrentTime() {
-			return player.getCurrentTime()
-		}
-	
-		function paintProgress() {
-			function minutes (time) {
-				return Math.floor(time / 60);
-			}
-	
-			function seconds (time) {
-				return Math.floor(time - minutes(time) * 60).toLocaleString(undefined, {minimumIntegerDigits: 2})
-			}
+}
 
-			function progressWidth() {
-				return Math.round((520/100) * ((getCurrentTime() / getVideoDuration())*100))
-				// Percentage code, janky..
-				// return (getCurrentTime() / getVideoDuration())*100
-			}
 
-			document.querySelector('.progress').setAttribute("style", "width:" + progressWidth() +"px"); // Animates progress bar
-			document.querySelector('.progress').innerText = "(" + minutes(Math.round(getCurrentTime())) + ":" + seconds(Math.round(getCurrentTime())) + 
-			"\xA0/\xA0" + minutes(Math.round(getVideoDuration())) + ":" + seconds(Math.round(getVideoDuration())) + ")"; // Updates time
+function onPlayerStateChange(event) {
 
- 			requestAnimationFrame(paintProgress)
-		}
+	switch(player.getPlayerState()) {
+		case -1:
+			console.log("unstarted")
+			break;
+		case 0:
+			console.log("ended")
+			resetUi();
+			// $chat.append(cue.title[0] + " has finished " + cue.user.name[0] + " received *vibes* " + "new rating is " + cue.user.vibes[0] + "</br>")
+			// $chat.scrollTop(document.getElementById("chat").scrollHeight);
+			socket.emit('play next video')
+			break;
+		case 1:
+			console.log("play")
+			socket.emit('play video')
+			requestAnimationFrame(paintProgress)
+			break;
+		case 2:
+			console.log("pause")
+			socket.emit('pause video')
+			break;
+		case 3:
+			console.log("buffering")
+			break;
+		case 5:
+			console.log("video cued")
+	}
+}  
 
-		var getClientIp = function() {
-			return new Promise(function(resolve, reject) {
-				if(self.fetch) {
-					fetch('http://ipinfo.io/json', {
-						method: 'get'
-					})
-					.then(function(response) {
-						console.log(response)
-						return response.json();
-					})
-					.then(function(data) {
-						ip = data.ip
-						country = data.country.toLowerCase()
-						resolve();
-					})
-					.catch(function(err) {
-						console.log(err)
-						reject(err);
-					});
-				} else {
-					console.log("Fetch not supported in this browser")
-					reject("No support")
-				}
+function getVolume() {
+	return player.getVolume()
+}
+
+function setVolume(volume) {
+	player.setVolume(volume)
+	$('.volumeSlider').val(volume)
+	if (volume > 0) {
+		player.unMute()
+		$('.mute').removeClass('fa-volume-off').addClass('fa-volume-down')
+	} else {
+		player.mute()
+		$('.mute').removeClass('fa-volume-down').addClass('fa-volume-off')
+	}
+}
+
+function getVideoDuration() {
+	return player.getDuration()
+}
+
+function getCurrentTime() {
+	return player.getCurrentTime()
+}
+
+function paintProgress() {
+
+	function minutes (time) {
+		return Math.floor(time / 60);
+	}
+
+	function seconds (time) {
+		return Math.floor(time - minutes(time) * 60).toLocaleString(undefined, {minimumIntegerDigits: 2})
+	}
+
+	function progressWidth() {
+		return Math.round((520/100) * ((getCurrentTime() / getVideoDuration())*100))
+		// Percentage code, janky..
+		// return (getCurrentTime() / getVideoDuration())*100
+	}
+
+	document.querySelector('.progress').setAttribute("style", "width:" + progressWidth() +"px"); // Animates progress bar
+
+	document.querySelector('.progress').innerText = 
+	"(" + minutes(Math.round(getCurrentTime()))  // Minutes played of current video
+	+ ":" + seconds(Math.round(getCurrentTime()))  // Seconds played of current video
+	+ "\xA0/\xA0" + minutes(Math.round(getVideoDuration()))  // Minutes in total of current video
+	+ ":" + seconds(Math.round(getVideoDuration())) + ")"; // Seconds in total of current video
+
+	requestAnimationFrame(paintProgress)
+}
+
+var getClientIp = function() {
+	return new Promise(function(resolve, reject) {
+		if(self.fetch) {
+			fetch('http://ipinfo.io/json', {
+				method: 'get'
 			})
+			.then(function(response) {
+				console.log(response)
+				return response.json();
+			})
+			.then(function(data) {
+				ip = data.ip
+				country = data.country.toLowerCase()
+				resolve();
+			})
+			.catch(function(err) {
+				console.log(err)
+				reject(err);
+			});
+		} else {
+			console.log("Fetch not supported in this browser")
+			reject("No support")
 		}
-			
-			var $nickForm = $('#setNick'),
-				$nickError = $('#nickError'),
-				$nickBox = $('#nickname'),
-				$users = $('#users'),
-				$messageForm = $('#send-message'),
-				$messageBox = $('#message'),
-				$chat = $('#chat'),
-				$player = $('#player'),
-				$searchForm = $('#searchForm'),
-				$searchQuery = $('#search'),
-				$results = $('#results'),
-				$resultVideo = $('.resultThumbnails'),
-				$skip = $('.skip'),
-				$cue = $('#cue'),
-				$progress = $('.progress'),
-				$good = $('.good'),
-				$bad = $('.bad'),
-				
-				resultsWindow = false;
+	})
+}
+	
+	var $nickForm = $('#setNick'),
+		$nickError = $('#nickError'),
+		$nickBox = $('#nickname'),
+		$users = $('#users'),
+		$messageForm = $('#send-message'),
+		$messageBox = $('#message'),
+		$chat = $('#chat'),
+		$player = $('#player'),
+		$searchForm = $('#searchForm'),
+		$searchQuery = $('#search'),
+		$results = $('#results'),
+		$resultVideo = $('.resultThumbnails'),
+		$skip = $('.skip'),
+		$cue = $('#cue'),
+		$progress = $('.progress'),
+		$good = $('.good'),
+		$bad = $('.bad'),
+		
+		resultsWindow = false;
 
 		function handler() {
-			console.log(cue, usernames)
-			skipFired = true;
+			console.log(cue, users)
+			hasSkipped = true;
 
 			// $chat.append("handler()</br>")
 			// $chat.scrollTop(document.getElementById("chat").scrollHeight);
@@ -565,7 +265,7 @@
 				console.log("No videos in client side cue")
 			}
 
-			setTimeout(function(){ skipFired = false; }, 3000);
+			setTimeout(function(){ hasSkipped = false; }, 3000);
 		}
 			// Ajax calls to YouTube API
 
@@ -645,25 +345,12 @@
 				$chat.scrollTop(document.getElementById("chat").scrollHeight);
 			});			
 			
-			// socket.on('usernames', function(data) {
-			// 	usernames = data;
-			// 	$skip.val("Skip (" + skipped + "/" + Math.round(usernames.length / 2) + ")");
-			// 	var html = '';
-			// 	for(i=0; i < data.length; i++) {
-			// 		html += data[i] + '<br/>'
-			// 	}
-			// 	$users.html(html);
-			// });
-
-			socket.on('usernames', function(data) {
-				console.log(data)
-				usernames = data.vibzer;
-				$skip.val("Skip (" + skipped + "/" + Math.round(usernames.length / 2) + ")");
-				var html = '';
-				for(i=0; i < data.vibzer.length; i++) {
-					// <span class=".flag .flag-gb">
-					// html += '<span class=".flag .flag-' + data.flag[i] + '">' + data.vibzer[i] + ' (' + data.numberofvibes[i] + ')</span><br/>'
-					html += '<span class="flag-icon flag-icon-' + data.flag[i] + '"></span> ' + data.vibzer[i] + ' (' + data.numberofvibes[i] + ')<br/>'
+			socket.on('send users', function(data) {
+				users = data
+				$skip.val("Skip (" + skipped + "/" + Math.round(users.length / 2) + ")");
+				var html = ""
+				for (i=0; i < data.length; i++) {
+					html += '<span class="flag-icon flag-icon-' + data[i].flag + '"></span> ' + data[i].name + ' (' + data[i].vibes + ')<br/>'
 				}
 				$users.html(html);
 			});
@@ -678,7 +365,7 @@
 
 			var resetUi = function() {
 				skipped = 0;
-				$skip.val("Skip (" + skipped + "/" + Math.round(usernames.length / 2) + ")");
+				$skip.val("Skip (" + skipped + "/" + Math.round(users.length / 2) + ")");
 				$good.attr("disabled", false);
 				$bad.attr("disabled", false);
 				$skip.attr("disabled", false);
@@ -689,10 +376,22 @@
 				$bad.attr("disabled", true);
 			}
 
+			$('.mute').click(function() {
+				if (player.isMuted()) {
+					player.unMute()
+					setVolume(100)
+					$('.mute').removeClass('fa-volume-off').addClass('fa-volume-down')
+				} else {
+					player.mute()
+					setVolume(0)
+					$('.mute').removeClass('fa-volume-down').addClass('fa-volume-off')
+				}
+			})
+
 			$good.click(function() {
 				if (!vibeFired) {
 					disableVibeButtons()
-					console.log(cue.user.name[0])
+					console.log(cue[0].user.name)
 					socket.emit('good vibe', cue[0].user.name);
 				}
 			})
@@ -706,24 +405,26 @@
 			})
 
 			$skip.click(function() {
-				if (!skipFired) {
-					console.log("not skipFired")
+				if (!hasSkipped) {
+					console.log("not hasSkipped")
 					$(this).attr("disabled", true);
 					skipped++;
 					socket.emit('vote skip', {skipvotes: skipped});
 				}
-				if (skipFired) {
+				if (hasSkipped) {
 					$chat.append('<span class="error">You can\'t skip so soon please wait!</span></br>')
 					$chat.scrollTop(document.getElementById("chat").scrollHeight);
 				}
 			});
+
+			$('.volumeSlider')
 
 			socket.on('skip', function(data) {
 				console.log(data)
 				console.log(data.skip)
 				if (data.skip) {
 					skipped = data.skipvotes
-					$chat.append('<span class="whisper"><b>' + data.username + " </b>voted to skip <b>(" + skipped + "/" + Math.round(usernames.length / 2) + ")</b></br>");
+					$chat.append('<span class="whisper"><b>' + data.username + " </b>voted to skip <b>(" + skipped + "/" + Math.round(users.length / 2) + ")</b></br>");
 					$chat.scrollTop(document.getElementById("chat").scrollHeight);
 					$chat.append('<span class="whisper error"><b>' + cue[0].title + "</b> has been skipped</br>");
 					$chat.scrollTop(document.getElementById("chat").scrollHeight);
@@ -733,8 +434,8 @@
 					socket.emit('play next video');
 				} else {
 					skipped = data.skipvotes
-					$skip.val("Skip (" + skipped + "/" + Math.round(usernames.length / 2) + ")");
-					$chat.append('<span class="whisper"><b>' + data.username + " </b>voted to skip <b>(" + skipped + "/" + Math.round(usernames.length / 2) + ")</b></br>");
+					$skip.val("Skip (" + skipped + "/" + Math.round(users.length / 2) + ")");
+					$chat.append('<span class="whisper"><b>' + data.username + " </b>voted to skip <b>(" + skipped + "/" + Math.round(users.length / 2) + ")</b></br>");
 					$chat.scrollTop(document.getElementById("chat").scrollHeight);
 				}
 			});
