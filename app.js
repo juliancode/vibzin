@@ -8,14 +8,7 @@ var express = require('express'),
 	User = require('./js/db').User,
 	people = {},
 	users = [],
-	cue = {
-		id: [],
-		title: [],
-		user: {
-			name: [],
-			vibes: [],
-		},
-	},
+	cue = [],
 	fired = false,
 	port = Number(process.env.PORT || 3000);
 
@@ -23,10 +16,9 @@ function getUserNames(users) {
   var userNames = users.map(function(user) {
     if (user.name)
       return user.name
-
     throw Error("User does not have property name" + JSON.stringify(user))
   })
-
+  
   return userNames
 }
 
@@ -41,6 +33,7 @@ app.get('/', function(req, res){
 app.use(express.static('public'));
 
 io.on('connection', function(socket) {
+	console.log(cue, users)
 	getCueFromDb();
 
 	socket.on('new user', function(data, callback) {
@@ -49,8 +42,7 @@ io.on('connection', function(socket) {
       var userNames = getUserNames(users)
 
 			if (userNames.indexOf(data.nick) > -1) {
-				callback(false);
-				console.log("No fam")
+				callback(false); // Username exists
 			}
 			else {
 				callback(true);
@@ -95,7 +87,7 @@ io.on('connection', function(socket) {
 			return removeUser(socket.nickname)
 			.then(function() {
 				console.log("uno")
-        var userNames = getUserNames(users)
+        		var userNames = getUserNames(users)
 				var index = userNames.indexOf(socket.nickname)
 				if (index > -1) {
 					users.splice(index, 1);
@@ -146,7 +138,9 @@ io.on('connection', function(socket) {
 			fired = true;
 			setTimeout(function() {
 				fired = false;}, 3000);
-			return removeVideo(cue.id[0])
+			console.log(cue.length)
+			if (cue.length) {
+				return removeVideo(cue[0].id)
 				.then(function() {
 					return getCueFromDb();
 				})
@@ -156,10 +150,11 @@ io.on('connection', function(socket) {
 				.catch(function(e) {
 					console.log("Error", e)
 				})
+			}
 		}
-	});
+	})
 
-	socket.on('send message', function(data, callback){
+	socket.on('send message', function(data, callback) {
 		var msg = data.trim();
 		io.sockets.emit('new message', {msg: msg, nick: socket.nickname});
 	});
@@ -216,9 +211,7 @@ function updateNicknames(){
 
 
 var emptyCue = function() {
-	cue.id = []; // empty array
-	cue.title = [];
-	cue.user.name = [];
+	cue = [];
 }
 
 var emptyUser = function() {
@@ -236,12 +229,8 @@ var getUsersFromDb = function() {
 			if (vibzers.length) {
 				emptyUser();
 				vibzers.forEach(function(vibzer) {
-					console.log(vibzer.flag)
-
-          users.push(vibzer)
-
+          			users.push(vibzer)
 					if (users.length === vibzers.length) {
-						console.log("brap")
 						console.log(users)
 						resolve();
 					}
@@ -270,27 +259,43 @@ var removeUser = function(nick) {
 var getCueFromDb = function() {
 	return new Promise(function(resolve, reject) {
 		Video.find({}).exec(function(err, videos) {
-				if (err) {
-					reject(err);
-				}
-				if (videos.length) {
-					emptyCue();
-					videos.forEach(function(video) {
-						cue.id.push(video.id) // push all the videos from db into cue array
-						cue.title.push(video.title)
-						cue.user.name.push(video.user.name)
-					});
-					io.sockets.emit('send cue', {cue: cue.id, title: cue.title, nick: cue.user.name});
-					resolve();
-				}
-				else {
-					emptyCue();
-					io.sockets.emit('send cue', {cue: cue.id, title: cue.title, nick: cue.user.name});
-					resolve();
-				}
+			console.log(videos)
+			if (err) {
+				reject(err);
+			}
+			if (videos.length) {
+				emptyCue();
+				videos.forEach(function(video) {
+					cue.push(video)
+					if (videos.length === cue.length) {
+						io.sockets.emit('send cue', cue);
+						resolve();
+					}
+				});
+			} else {
+				emptyCue();
+				io.sockets.emit('send cue', cue);
+				resolve();
+			}
 		})
 	})
 }
+
+// var getCueFromDb = function() {
+// 	return new Promise(function(resolve, reject) {
+// 		Video.find({}).exec(function(err, videos) {
+// 			console.log(videos)
+// 			if (err) {
+// 				reject(err);
+// 			} else {
+// 				io.sockets.emit('send cue', videos);
+// 				resolve();
+// 			}
+// 		})
+// 	})
+// }
+
+
 
 var removeVideo = function(id) {
 	return new Promise(function(resolve, reject) {

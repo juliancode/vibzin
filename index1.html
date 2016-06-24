@@ -286,7 +286,7 @@
 		}
 
 		.progressWrap {
-			width: 720px;
+			width: 520px;
 			height: 20px;
 			background: darkred;
 			position: relative;
@@ -347,6 +347,7 @@
 			<div class="progress">	
 			</div>
 		</div>
+		<input type="range" name="points" min="0" max="10" class="volumeSlider">
 		<div id="mainWrap">
 			<div id="chatWrap">
 				<div id="chat"></div>
@@ -390,14 +391,7 @@
 	      // 3. This function creates an <iframe> (and YouTube player)
 	      //    after the API code downloads.
 	    	var player = undefined,
-	    		cue = { 
-	    			id: [],
-	    			title: [],
-	    			user: {
-	    				name: [],
-						vibes: [],
-	    			},
-	    		},
+	    		cue = [],
 	    		usernames = [],
 	    		ip,
 	    		country
@@ -413,10 +407,14 @@
 	      }
 
 	    function onYouTubeIframeAPIReady() {
+	    	var id;
+	    	if (cue.length) {
+	    		id = cue[0].id
+	    	}
 	      	player = new YT.Player('player', {
 				height: '390',
 				width: '720',
-				videoId: cue.id[0],
+				videoId: id,
 				playerVars: {
 					'controls': 0,
 					'rel': 0,
@@ -494,7 +492,7 @@
 			}
 
 			function progressWidth() {
-				return Math.round((720/100) * ((getCurrentTime() / getVideoDuration())*100))
+				return Math.round((520/100) * ((getCurrentTime() / getVideoDuration())*100))
 				// Percentage code, janky..
 				// return (getCurrentTime() / getVideoDuration())*100
 			}
@@ -553,13 +551,14 @@
 				resultsWindow = false;
 
 		function handler() {
+			console.log(cue, usernames)
 			skipFired = true;
 
 			// $chat.append("handler()</br>")
 			// $chat.scrollTop(document.getElementById("chat").scrollHeight);
-			console.log("Handler called - client side cue", cue.id)
-			if (cue.id.length > 0)  {
-	      		player.loadVideoById(cue.id[0])
+			console.log("Handler called - client side cue", cue)
+			if (cue.length > 0)  {
+	      		player.loadVideoById(cue[0].id)
 			}
 			else {
 				player.stopVideo();
@@ -694,15 +693,15 @@
 				if (!vibeFired) {
 					disableVibeButtons()
 					console.log(cue.user.name[0])
-					socket.emit('good vibe', cue.user.name[0]);
+					socket.emit('good vibe', cue[0].user.name);
 				}
 			})
 
 			$bad.click(function() {
 				if (!vibeFired) {
 					disableVibeButtons()
-					console.log(cue.user.name[0])
-					socket.emit('bad vibe', cue.user.name[0]);
+					console.log(cue[0].user.name)
+					socket.emit('bad vibe', cue[0].user.name);
 				}
 			})
 
@@ -726,7 +725,7 @@
 					skipped = data.skipvotes
 					$chat.append('<span class="whisper"><b>' + data.username + " </b>voted to skip <b>(" + skipped + "/" + Math.round(usernames.length / 2) + ")</b></br>");
 					$chat.scrollTop(document.getElementById("chat").scrollHeight);
-					$chat.append('<span class="whisper error"><b>' + cue.title[0] + "</b> has been skipped</br>");
+					$chat.append('<span class="whisper error"><b>' + cue[0].title + "</b> has been skipped</br>");
 					$chat.scrollTop(document.getElementById("chat").scrollHeight);
 					resetUi();
 					// $chat.append(cue.title[0] + " has finished " + cue.user.name[0] + " received *vibes* " + "new rating is ...</br>")
@@ -743,7 +742,7 @@
 			socket.on('change video', function(data) {
 				// $chat.append("socket.on('change video')</br>")
 				// $chat.scrollTop(document.getElementById("chat").scrollHeight);
-				if (!cue.id.length || player.getPlayerState() === 5) {
+				if (!cue.length || player.getPlayerState() === 5) {
 					handler();
 				}
 				$chat.append('<span class="whisper"><b>' + data.nick + '</b> added <b>' + data.title + '</b> to the cue</span><br/>');
@@ -780,22 +779,29 @@
 			socket.on('send cue', function(data) {
 				// $chat.append("send cue</br>")
 				// $chat.scrollTop(document.getElementById("chat").scrollHeight);
-				cue.id = data.cue;
-				cue.title = data.title;
-				cue.user.name = data.nick;
-				console.log(data.title)
-				if (cue.title) {
-					$cue.empty(); 
-					cue.title.forEach(function(element) {
+				cue = data
+				buildCueUi();
+				console.log(cue)
+				console.log("Received cue from server", cue)
+			});
+
+			var buildCueUi = function() {
+				if (cue.length) {
+					$cue.empty();
+					var cueTitles = cue.map(function(cueItem) { 
+						return cueItem.title 
+					})
+					cueTitles.forEach(function(element) {
 						console.log(element)
 						var li = document.createElement("li");
 						$cue.append(li)
 						li.innerHTML = element
 					})
 					$cue.scrollTop(0);
+				} else {
+					$cue.empty();
 				}
-				console.log("Received cue from server", cue)
-			});
+			}
 
 			socket.on('next video', function() {
 				handler();
