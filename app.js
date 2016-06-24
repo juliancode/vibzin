@@ -8,7 +8,7 @@ var express = require('express'),
 	User = require('./js/db').User,
 	people = {},
 	users = [],
-	cue = [],
+	// cue = [],
 	fired = false,
 	port = Number(process.env.PORT || 3000);
 
@@ -18,7 +18,7 @@ function getUserNames(users) {
       return user.name
     throw Error("User does not have property name" + JSON.stringify(user))
   })
-  
+
   return userNames
 }
 
@@ -33,13 +33,20 @@ app.get('/', function(req, res){
 app.use(express.static('public'));
 
 io.on('connection', function(socket) {
-	console.log(cue, users)
-	getCueFromDb();
+	console.log("Connection")
+	getCueFromDb()
+	.then(function(cue) {
+		io.sockets.emit('send cue', cue);
+	})
+	.catch(function(err) {
+		console.log("Error", err)
+	})
 
 	socket.on('new user', function(data, callback) {
+		console.log("New user")
 		return getUsersFromDb()
 		.then(function() {
-      var userNames = getUserNames(users)
+     	var userNames = getUserNames(users)
 
 			if (userNames.indexOf(data.nick) > -1) {
 				callback(false); // Username exists
@@ -86,13 +93,11 @@ io.on('connection', function(socket) {
 		else {
 			return removeUser(socket.nickname)
 			.then(function() {
-				console.log("uno")
         		var userNames = getUserNames(users)
 				var index = userNames.indexOf(socket.nickname)
 				if (index > -1) {
 					users.splice(index, 1);
 				}
-				console.log("yes im being excuted")
 				delete people[socket.nickname];
 
 				return getUsersFromDb()
@@ -108,7 +113,7 @@ io.on('connection', function(socket) {
 	});
 
 	socket.on('vote skip', function(data) {
-		console.log(data)
+		console.log("Vote skip")
 		if (data.skipvotes >= Math.round(Object.keys(people).length)/2) {
 			io.sockets.emit('skip', {skip: true, skipvotes: data.skipvotes, username: socket.nickname})
 		} else {
@@ -121,7 +126,10 @@ io.on('connection', function(socket) {
 
 		return addToCue(data.id, data.title, socket.nickname)
 		.then(function() {
-			return getCueFromDb();
+			return getCueFromDb()
+		})
+		.then(function(cue) {
+			io.sockets.emit('send cue', cue);
 		})
 		.then(function() {
 			console.log("Emit change video")
@@ -133,25 +141,35 @@ io.on('connection', function(socket) {
 	});
 
 	socket.on('play next video', function() {
-		console.log(fired)
-		if (!fired) {
-			fired = true;
-			setTimeout(function() {
-				fired = false;}, 3000);
-			console.log(cue.length)
-			if (cue.length) {
-				return removeVideo(cue[0].id)
-				.then(function() {
-					return getCueFromDb();
-				})
-				.then(function() {
-					io.sockets.emit('next video');
-				})
-				.catch(function(e) {
-					console.log("Error", e)
-				})
-			}
-		}
+		console.log("Play next video")
+		// when TRUE do nothing
+		if (fired) 
+			return
+		fired = true;
+		setTimeout(function() {
+			fired = false;
+		}, 3000);
+
+		getCueFromDb()
+		// if cue.length is TRUE removeVideo else if FALSE return cue
+		.then(function(cue) { 
+			return cue.length ? removeVideo(cue[0].id) : cue 
+		})
+		.then(function(cue) {
+			return getCueFromDb()
+		})
+		.then(function(cue) {
+			io.sockets.emit('send cue', cue);
+			return cue
+		})
+		.then(function(cue) { 
+			io.sockets.emit('next video');
+			return cue 
+		})
+		.then(console.log)
+		.catch(function(e) {
+			console.log("Error")
+		})
 	})
 
 	socket.on('send message', function(data, callback) {
@@ -201,7 +219,6 @@ io.on('connection', function(socket) {
 
 function updateNicknames(){
 	console.log("Update nicknames")
-	console.log(users)
   var names = getUserNames(users)
   var vibes = users.map(function(user) { return user.vibes })
   var flag = users.map(function(user) { return user.flag })
@@ -231,7 +248,6 @@ var getUsersFromDb = function() {
 				vibzers.forEach(function(vibzer) {
           			users.push(vibzer)
 					if (users.length === vibzers.length) {
-						console.log(users)
 						resolve();
 					}
 				});
@@ -243,7 +259,6 @@ var getUsersFromDb = function() {
 }
 
 var removeUser = function(nick) {
-	console.log(nick)
 	return new Promise(function(resolve, reject) {
 		User.find({'name' : nick}).remove(function(err, data) {
 			if (err)
@@ -256,54 +271,56 @@ var removeUser = function(nick) {
 	})
 }
 
-var getCueFromDb = function() {
-	return new Promise(function(resolve, reject) {
-		Video.find({}).exec(function(err, videos) {
-			console.log(videos)
-			if (err) {
-				reject(err);
-			}
-			if (videos.length) {
-				emptyCue();
-				videos.forEach(function(video) {
-					cue.push(video)
-					if (videos.length === cue.length) {
-						io.sockets.emit('send cue', cue);
-						resolve();
-					}
-				});
-			} else {
-				emptyCue();
-				io.sockets.emit('send cue', cue);
-				resolve();
-			}
-		})
-	})
-}
-
 // var getCueFromDb = function() {
 // 	return new Promise(function(resolve, reject) {
 // 		Video.find({}).exec(function(err, videos) {
 // 			console.log(videos)
 // 			if (err) {
 // 				reject(err);
+// 			}
+// 			if (videos.length) {
+// 				emptyCue();
+// 				videos.forEach(function(video) {
+// 					cue.push(video)
+// 					if (videos.length === cue.length) {
+// 						io.sockets.emit('send cue', cue);
+// 						resolve();
+// 					}
+// 				});
 // 			} else {
-// 				io.sockets.emit('send cue', videos);
+// 				emptyCue();
+// 				io.sockets.emit('send cue', cue);
 // 				resolve();
 // 			}
 // 		})
 // 	})
 // }
 
+var getCueFromDb = function() {
+	console.log("getCueFromDb")
+	return new Promise(function(resolve, reject) {
+		Video.find({}).exec(function(err, videos) {
+			console.log(videos)
+			if (err) {
+				reject(err);
+			} else {
+				// io.sockets.emit('send cue', videos); NEED TO DO THIS ELSEWHERE
+				resolve(videos);
+			}
+		})
+	})
+}
+
 
 
 var removeVideo = function(id) {
+	console.log("Remove video")
 	return new Promise(function(resolve, reject) {
 		Video.find({'id' : id}).remove(function(err, data) {
 			if (err)
 				reject(err);
 			else {
-				console.log("Remove video")
+				console.log("Remove video resolve")
 				resolve();
 			}
 		});
