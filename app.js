@@ -100,7 +100,7 @@ io.on('connection', function(socket) {
 
 	socket.on('vote skip', function(data) {
 		console.log("Vote skip")
-		getUsers()
+		getUsersOnline()
 		.then(function(usersOnline) {
 			if (data.skipvotes >= Math.round(usersOnline.length/2)) {
 				io.sockets.emit('skip', {skip: true, skipvotes: data.skipvotes, username: socket.nickname})
