@@ -34,27 +34,46 @@ io.on('connection', function(socket) {
 
 	socket.on('new user', function(data, callback) {
 		console.log("New user")
-		getUsers()
+		var online
+		isUserOnline(data.nick)
+		.then(function(result) {
+			online = result
+			return getUsers()
+		})
 		.then(function(users) {
      		var userNames = users.map(function(user) { return user.name })
-			if (userNames.indexOf(data.nick) > -1) {
-				callback(false); 
+     		// if user exists in database & is online callbackfalse
+			if (userNames.indexOf(data.nick) > -1 && online)
+				callback(false); 	
+			// if user exists in database but isnt online
+			else if (userNames.indexOf(data.nick) > -1) {
+				socket.nickname = data.nick;
+				userOnline(data.nick)
+				.then(function() {
+					return getUsersOnline()
+				})
+				.then(function(usersOnline) {
+					socket.broadcast.emit('user join', {nick: socket.nickname})
+					io.sockets.emit('send users', usersOnline)
+					callback(true);
+				})
 			}
+			// if user doesnt exist create it
 			else {
-				callback(true);
 				socket.nickname = data.nick;
 				return addUser(data.nick, data.flag)
 				.then(function() {
-					return getUsers()
-					.then(function(users) {
+					return getUsersOnline()
+					.then(function(usersOnline) {
 						socket.broadcast.emit('user join', {nick: socket.nickname})
-						io.sockets.emit('send users', users)
+						io.sockets.emit('send users', usersOnline)
+						callback(true);
 					})
 				})
 			}
 		})
 		.catch(function(e) {
-			console.log("Error", e, e.stack)
+			console.log("Error new user", e, e.stack)
 		})
 	});
 
@@ -64,12 +83,13 @@ io.on('connection', function(socket) {
 			return // do nothing if no socket.nicknames
 		}
 		else {
-			return removeUser(socket.nickname)
+			return userOffline(socket.nickname)
+			// return removeUser(socket.nickname)
 			.then(function() {
-				return getUsers()
-				.then(function(users) {
+				return getUsersOnline()
+				.then(function(usersOnline) {
 					socket.broadcast.emit('user leave', {nick: socket.nickname});
-	        		io.sockets.emit('send users', users);
+	        		io.sockets.emit('send users', usersOnline);
 				})
 				.catch(function(e) {
 				console.log("Error", e, e.stack)
@@ -81,9 +101,8 @@ io.on('connection', function(socket) {
 	socket.on('vote skip', function(data) {
 		console.log("Vote skip")
 		getUsers()
-		.then(function(users) {
-			console.log(users, users.length)
-			if (data.skipvotes >= Math.round(users.length/2)) {
+		.then(function(usersOnline) {
+			if (data.skipvotes >= Math.round(usersOnline.length/2)) {
 				io.sockets.emit('skip', {skip: true, skipvotes: data.skipvotes, username: socket.nickname})
 			} else {
 				io.sockets.emit('skip', {skip: false, skipvotes: data.skipvotes, username: socket.nickname})
@@ -156,13 +175,12 @@ io.on('connection', function(socket) {
 	});
 
 	socket.on('good vibe', function(data) {
-		console.log(data)
 		return changeVibe('good', data)
 		.then(function() {
-			return getUsers()
+			return getUsersOnline()
 		})
-		.then(function(users) {
-			io.sockets.emit('send users', users);
+		.then(function(usersOnline) {
+			io.sockets.emit('send users', usersOnline);
 		})
 		.catch(function(e) {
 			console.log("Error", e)
@@ -172,10 +190,10 @@ io.on('connection', function(socket) {
 	socket.on('bad vibe', function(data) {
 		return changeVibe('bad', data)
 		.then(function() {
-			return getUsers()
+			return getUsersOnline()
 		})
-		.then(function(users) {
-			io.sockets.emit('send users', users);
+		.then(function(usersOnline) {
+			io.sockets.emit('send users', usersOnline);
 		})
 		.catch(function(e) {
 			console.log("Error", e)
@@ -202,11 +220,56 @@ var getUsers = function() {
 	});
 }
 
+var getUsersOnline = function() {
+	console.log("getUsersOnline")
+	return new Promise(function(resolve, reject) {
+		User.find({ 'online' : 'true' }).exec(function(err, usersOnline) {
+			if (err) {
+				console.log(err)
+				reject(err)
+			}
+			 else {
+				resolve(usersOnline)
+			}
+		});
+	});
+}
+
+var isUserOnline = function(user) {
+	return new Promise(function(resolve, reject) {
+		User.findOne({ name : user, online : 'true' }).exec(function(err, onlineUser) {
+			if (err) {
+				reject(err)
+			} 
+			if (onlineUser) {
+				console.log("true", onlineUser)
+				resolve(true)
+			}
+			else {
+				console.log("false", onlineUser)
+				resolve(false)
+			}
+		})
+	})
+}
+
+var userOnline = function(name) {
+	return new Promise(function(resolve, reject) {
+		User.findOneAndUpdate({ 'name' : name }, { online : true }, function(err, doc) {
+			if (err)
+				reject("Error userOnline")
+			else
+				resolve()
+		})
+	})
+}
+
 var addUser = function(name, flag) {
 	return new Promise(function(resolve, reject) {
 		var user = new User();
 		user.name = name;
 		user.flag = flag;
+		user.online = true;
 		user.save(function(err, data) {
 			if (err) {
 				reject(err)
@@ -223,11 +286,20 @@ var removeUser = function(name) {
 		User.find({'name' : name}).remove(function(err, data) {
 			if (err)
 				reject(err);
-			else {
-				console.log("Remove user")
+			else 
 				resolve();
-			}
 		});
+	})
+}
+
+var userOffline = function(name) {
+	return new Promise(function(resolve, reject) {
+		User.findOneAndUpdate({ 'name': name}, { online: false }, function(err, doc) {
+			if (err) 
+				reject(err)
+			else 
+				resolve()
+		})
 	})
 }
 

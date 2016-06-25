@@ -114,14 +114,8 @@ function onYouTubeIframeAPIReady() {
 }
 
 function onPlayerReady() {
-	setVolume(getVolume())
-	if (getVolume() > 0) {
-		$('.mute').removeClass('fa-volume-off').addClass('fa-volume-down')
-	} else {
-		$('.mute').removeClass('fa-volume-down').addClass('fa-volume-off')
-	}
+	setVolume(50)
 }
-
 
 function onPlayerStateChange(event) {
 

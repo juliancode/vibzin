@@ -19,6 +19,7 @@ var User = mongoose.model('User', {
 		type: Number, default: 1000
 	},
 	flag: String,
+	online: Boolean
 });
 
 module.exports = {
