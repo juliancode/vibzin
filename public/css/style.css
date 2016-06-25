@@ -36,7 +36,7 @@ body {
 	padding: 0 10px;
 	border-left: 1px solid #aaa;
 	font-family: Arial;
-	overflow-y: scroll;
+	overflow-y: auto;
 }
 
 .whisper {

@@ -7,6 +7,9 @@ var Cue = mongoose.model('Cue', {
     title: String,
     user: {
     	name: String,
+    },
+    vibes: {
+    	type: Number, default: 0 
     }
 });
 

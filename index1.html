@@ -344,7 +344,7 @@ var getClientIp = function() {
 				$skip.val("Skip (" + skipped + "/" + Math.round(users.length / 2) + ")");
 				var html = ""
 				for (i=0; i < data.length; i++) {
-					html += '<span class="flag-icon flag-icon-' + data[i].flag + '"></span> ' + data[i].name + ' (' + data[i].vibes + ')<br/>'
+					html += '<span class="flag-icon flag-icon-' + data[i].flag + '"></span> <b>' + data[i].name + '</b> (' + data[i].vibes + ')<br/>'
 				}
 				$users.html(html);
 			});
@@ -433,6 +433,22 @@ var getClientIp = function() {
 					$chat.scrollTop(document.getElementById("chat").scrollHeight);
 				}
 			});
+
+			socket.on('vibe results', function(data) {
+				console.log(vibeStr)
+				var vibeStr
+				if (data[0].vibes === -1)
+					vibeStr = data[0].vibes + ' vibe'
+				else if (data[0].vibes === 1)
+					vibeStr = '+' + data[0].vibes + ' vibe'
+				else if (data[0].vibes > 0)
+					vibeStr = '+' + data[0].vibes + ' vibes'
+				else
+					vibeStr = data[0].vibes + ' vibes'
+				$chat.append('<span class="whisper"><b>' + data[0].title 
+					+ ' </b> received<b> ' + vibeStr + '</span></br>');
+				$chat.scrollTop(document.getElementById("chat").scrollHeight);
+			})
 
 			socket.on('change video', function(data) {
 				// $chat.append("socket.on('change video')</br>")

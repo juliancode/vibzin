@@ -141,8 +141,15 @@ io.on('connection', function(socket) {
 
 		getCue()
 		// if cue.length is TRUE removeFromCue else if FALSE return cue
-		.then(function(cue) { 
-			return cue.length ? removeFromCue(cue[0].id) : cue 
+		.then(function(cue) {
+			io.sockets.emit('vibe results', cue)
+			return getCue()
+		})
+		.then(function(cue) {
+			if (cue.length) 
+				return removeFromCue(cue[0].id)
+			else
+				return cue
 		})
 		.then(function(cue) {
 			return getCue()
@@ -155,7 +162,6 @@ io.on('connection', function(socket) {
 			io.sockets.emit('next video');
 			return cue 
 		})
-		.then(console.log)
 		.catch(function(e) {
 			console.log("Error")
 		})
@@ -175,7 +181,13 @@ io.on('connection', function(socket) {
 	});
 
 	socket.on('good vibe', function(data) {
-		return changeVibe('good', data)
+		return getCue()
+		.then(function(cue) {
+			return updateVideoVibes('good', cue[0].id)
+		})
+		.then(function() {
+			return updateUserVibes('good', data)
+		})
 		.then(function() {
 			return getUsersOnline()
 		})
@@ -188,7 +200,13 @@ io.on('connection', function(socket) {
 	});
 
 	socket.on('bad vibe', function(data) {
-		return changeVibe('bad', data)
+		return getCue()
+		.then(function(cue) {
+			return updateVideoVibes('bad', cue[0].id)
+		})
+		.then(function() {
+			return updateUserVibes('bad', data)
+		})
 		.then(function() {
 			return getUsersOnline()
 		})
@@ -241,14 +259,10 @@ var isUserOnline = function(user) {
 			if (err) {
 				reject(err)
 			} 
-			if (onlineUser) {
-				console.log("true", onlineUser)
+			if (onlineUser)
 				resolve(true)
-			}
-			else {
-				console.log("false", onlineUser)
+			else
 				resolve(false)
-			}
 		})
 	})
 }
@@ -309,7 +323,6 @@ var getCue = function() {
 	console.log("getCue")
 	return new Promise(function(resolve, reject) {
 		Cue.find({}).exec(function(err, videos) {
-			console.log(videos)
 			if (err) {
 				reject(err);
 			} else {
@@ -354,7 +367,56 @@ var removeFromCue = function(id) {
 
 // Vibe code
 
-var changeVibe = function(vibe, name) {
+// Get the vibe a video has received
+
+var getVibe = function(video) {
+	return new Promise(function(resolve, reject) {
+		Cue.findOne({ 'id': video }).exec(function(err, doc) {
+			if (err)
+				reject(err);
+			else {
+				resolve(doc);
+			}
+		})
+	})
+}
+
+// Update a video's vibes
+
+var updateVideoVibes = function(vibe, video) {
+	if (vibe === "good") {
+		console.log("Good vibe")
+		return new Promise(function(resolve, reject) {
+			Cue.findOneAndUpdate({ 'id': video}, { $inc: { vibes: 1 } }, { new: true }, function(err, doc) {
+				if (err) {
+					console.log("error")
+					reject(err);
+				} else {
+					console.log("Returned document after update", doc)
+					resolve();
+				}
+			});
+		});
+	}
+	if (vibe === "bad") {
+		console.log("Bad vibe")
+		return new Promise(function(resolve, reject) {
+			Cue.findOneAndUpdate({ 'id': video}, { $inc: { vibes: -1 } }, { new: true }, function(err, doc) {
+				if (err) {
+					console.log("error")
+					reject(err);
+				} else {
+					console.log("Returned document after update", doc)
+					resolve();
+				}
+			});
+		});
+	}
+}
+
+// Update a user's vibes
+
+var updateUserVibes = function(vibe, name, video) {
 	if (vibe === "good") {
 		console.log("Good vibe")
 		return new Promise(function(resolve, reject) {
