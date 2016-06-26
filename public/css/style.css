@@ -9,6 +9,13 @@ body {
 	background-color: #f9effe;
 }
 
+.flex {
+	display: -webkit-box !important;
+	display: -webkit-flex !important;
+	display: -ms-flex !important;
+	display: flex !important;
+}
+
 .playerWrap {
 	width: 720px;
 	height: 390px;
