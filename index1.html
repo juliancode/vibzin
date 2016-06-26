@@ -430,7 +430,7 @@ var getClientIp = function() {
 					socket.emit('vote skip', {skipvotes: skipped});
 				}
 				if (hasSkipped) {
-					$chat.append('<span class="error">You can\'t skip so soon please wait!</span></br>')
+					$chat.append('<span class="error whisper">You can\'t skip so soon please wait!</span></br>')
 					$chat.scrollTop(document.getElementById("chat").scrollHeight);
 				}
 			});
@@ -442,9 +442,9 @@ var getClientIp = function() {
 				console.log(data.skip)
 				if (data.skip) {
 					skipped = data.skipvotes
-					$chat.append('<span class="whisper"><b>' + data.username + " </b>voted to skip <b>(" + skipped + "/" + Math.round(users.length / 2) + ")</b></br>");
+					$chat.append('<span><b>' + data.username + " </b>voted to skip <b>(" + skipped + "/" + Math.round(users.length / 2) + ")</b></br>");
 					$chat.scrollTop(document.getElementById("chat").scrollHeight);
-					$chat.append('<span class="whisper error"><b>' + cue[0].title + "</b> has been skipped</br>");
+					$chat.append('<span class="error"><b>' + cue[0].title + "</b> has been skipped</br>");
 					$chat.scrollTop(document.getElementById("chat").scrollHeight);
 					resetUi();
 					// $chat.append(cue.title[0] + " has finished " + cue.user.name[0] + " received *vibes* " + "new rating is ...</br>")
@@ -453,7 +453,7 @@ var getClientIp = function() {
 				} else {
 					skipped = data.skipvotes
 					$skip.val("Skip (" + skipped + "/" + Math.round(users.length / 2) + ")");
-					$chat.append('<span class="whisper"><b>' + data.username + " </b>voted to skip <b>(" + skipped + "/" + Math.round(users.length / 2) + ")</b></br>");
+					$chat.append('<span><b>' + data.username + " </b>voted to skip <b>(" + skipped + "/" + Math.round(users.length / 2) + ")</b></br>");
 					$chat.scrollTop(document.getElementById("chat").scrollHeight);
 				}
 			});
@@ -469,7 +469,7 @@ var getClientIp = function() {
 					vibeStr = '+' + data[0].vibes + ' vibes'
 				else
 					vibeStr = data[0].vibes + ' vibes'
-				$chat.append('<span class="whisper"><b>' + data[0].title 
+				$chat.append('<span><b>' + data[0].title 
 					+ ' </b> received<b> ' + vibeStr + '</span></br>');
 				$chat.scrollTop(document.getElementById("chat").scrollHeight);
 			})
@@ -479,7 +479,7 @@ var getClientIp = function() {
 					resetUi()
 					handler()
 				}
-				$chat.append('<span class="whisper"><b>' + data.nick + '</b> added <b>' + data.title + '</b> to the cue</span><br/>');
+				$chat.append('<span><b>' + data.nick + '</b> added <b>' + data.title + '</b> to the cue</span><br/>');
 				$chat.scrollTop(document.getElementById("chat").scrollHeight);
 			});
 			
