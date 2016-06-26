@@ -259,15 +259,15 @@ h3 {
 	background: linear-gradient(to bottom, blue 0%, darkblue 100%);
 }
 
-.uiWrap .good:hover {
+.uiWrap .good:enabled:hover {
 	background: green;
 }
 
-.uiWrap .bad:hover {
+.uiWrap .bad:enabled:hover {
 	background: red;
 }
 
-.uiWrap .skip:hover {
+.uiWrap .skip:enabled:hover {
 	background: blue;
 }
 

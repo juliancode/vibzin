@@ -396,7 +396,7 @@ var getClientIp = function() {
 			$good.click(function() {
 				if (!vibeFired) {
 					disableVibeButtons()
-					$chat.append('<span class="whisper">You gave <b>' + cue[0].user.name + '</b> +1 vibe for this song</span></br>')
+					$chat.append('<span class="whisper">You gave <b>' + cue[0].user.name + ' +1 vibe</b>  for this song</span></br>')
 					$chat.scrollTop(document.getElementById("chat").scrollHeight);
 					socket.emit('good vibe', cue[0].user.name);
 				}
@@ -405,7 +405,7 @@ var getClientIp = function() {
 			$bad.click(function() {
 				if (!vibeFired) {
 					disableVibeButtons()
-					$chat.append('<span class="whisper">You gave <b>' + cue[0].user.name + '</b> -1 vibe for this song</span></br>')
+					$chat.append('<span class="whisper">You gave <b>' + cue[0].user.name + ' -1 vibe</b>  for this song</span></br>')
 					$chat.scrollTop(document.getElementById("chat").scrollHeight);
 					socket.emit('bad vibe', cue[0].user.name);
 				}
@@ -504,6 +504,10 @@ var getClientIp = function() {
 				// $chat.scrollTop(document.getElementById("chat").scrollHeight);
 				cue = data
 				buildCueUi();
+				if (!cue.length) {
+					disableVibeButtons()
+					$skip.attr("disabled", true);
+				}
 				console.log(cue)
 				console.log("Received cue from server", cue)
 			});
