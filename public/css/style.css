@@ -57,7 +57,7 @@ body {
 #chat {
 	height: 300px;
 	background-color: white;
-	overflow-y: scroll;
+	overflow-y: auto;
 	overflow-x: hidden;
 	padding: 0 5px;
 	padding-bottom: 10px;
@@ -81,7 +81,7 @@ body {
 	padding: 0 10px;
 	border-left: 1px solid #aaa;
 	font-family: Arial;
-	overflow-y: scroll;
+	overflow-y: auto;
 }
 
 .whisper {
@@ -108,7 +108,7 @@ body {
 	padding: 10px;
 	border: 1px solid #aaa;
 	border-top: 0;
-	overflow-y: scroll;
+	overflow-y: auto;
 	font-size: 16px;
 }
 
@@ -155,7 +155,7 @@ button.icon {
 	transform: translateX(-100%);
 	transition: all 0.25s;
 	background: #222;
-	overflow-y: scroll;
+	overflow-y: auto;
 	z-index: 20;
 }
 
@@ -286,7 +286,7 @@ h3 {
 	height: 352px;
 	border: 1px solid #aaa;
 	border-left: 0;
-	overflow-y: scroll;
+	overflow-y: auto;
 
 }
 
