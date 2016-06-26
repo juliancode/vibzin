@@ -27,9 +27,13 @@
 	<div id="results">
 		
 	</div>
-	<div id="player">
-		
-	</div>
+	<div class="playerWrap">
+		<div class="playerOverlay">
+			<h3></h3>
+			<h5></h5>
+		</div>
+		<div id="player"></div>
+	</div>	
 	<div class="videoUi">
 		<div class="progressWrap">
 			<div class="progress">	
@@ -57,7 +61,7 @@
 		</div>
 	</div>
 	<form id="send-message" autocomplete="off">
-		<input size="35" id="message"></input>
+		<input size="35" id="message" placeholder="Enter message..."></input>
 		<button class="send">Send</button>
 	</form>
 </div>
@@ -101,10 +105,15 @@ function onYouTubeIframeAPIReady() {
 			width: '720',
 			videoId: id,
 			playerVars: {
-				'controls': 0,
-				'rel': 0,
-				'disablekb': 1,
-				'modestbranding': 1
+				controls: 0,
+				rel: 0,
+				disablekb: 1,
+				modestbranding: 1,
+				branding: 1,
+				showinfo: 0,
+				origin: window.location.origin,
+				wmode: 'transparent',
+				iv_load_policy: 3
 			},
 			events: {
 				'onReady': onPlayerReady,
@@ -252,6 +261,8 @@ var getClientIp = function() {
 			// $chat.scrollTop(document.getElementById("chat").scrollHeight);
 			console.log("Handler called - client side cue", cue)
 			if (cue.length > 0)  {
+				$('.playerOverlay h3').text(cue[0].title)
+				$('.playerOverlay h5').text(cue[0].user.name)
 	      		player.loadVideoById(cue[0].id)
 			}
 			else {
@@ -385,7 +396,8 @@ var getClientIp = function() {
 			$good.click(function() {
 				if (!vibeFired) {
 					disableVibeButtons()
-					console.log(cue[0].user.name)
+					$chat.append('<span class="whisper">You gave <b>' + cue[0].user.name + '</b> +1 vibe for this song</span></br>')
+					$chat.scrollTop(document.getElementById("chat").scrollHeight);
 					socket.emit('good vibe', cue[0].user.name);
 				}
 			})
@@ -393,7 +405,8 @@ var getClientIp = function() {
 			$bad.click(function() {
 				if (!vibeFired) {
 					disableVibeButtons()
-					console.log(cue[0].user.name)
+					$chat.append('<span class="whisper">You gave <b>' + cue[0].user.name + '</b> -1 vibe for this song</span></br>')
+					$chat.scrollTop(document.getElementById("chat").scrollHeight);
 					socket.emit('bad vibe', cue[0].user.name);
 				}
 			})
@@ -451,10 +464,9 @@ var getClientIp = function() {
 			})
 
 			socket.on('change video', function(data) {
-				// $chat.append("socket.on('change video')</br>")
-				// $chat.scrollTop(document.getElementById("chat").scrollHeight);
 				if (!cue.length || player.getPlayerState() === 5) {
-					handler();
+					resetUi()
+					handler()
 				}
 				$chat.append('<span class="whisper"><b>' + data.nick + '</b> added <b>' + data.title + '</b> to the cue</span><br/>');
 				$chat.scrollTop(document.getElementById("chat").scrollHeight);

@@ -9,10 +9,55 @@ body {
 	background-color: #f9effe;
 }
 
+.playerWrap {
+	width: 720px;
+	height: 390px;
+	position: relative;
+}
+
+.playerOverlay {
+	color: white;
+	display: flex;
+	flex-flow: column wrap;
+	justify-content: center;
+	align-items: center;
+	width: 720px;
+	height: 390px;
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: 9999;
+	opacity: 0;
+}
+
+.playerOverlay:hover {
+	opacity: 1;
+	transition: 0.2s all ease-in;
+}
+
+.playerOverlay h3, .playerOverlay h5 {
+	text-shadow: 2px 2px 1px #000;
+}
+
+.playerOverlay h3 {
+	font-size: 22px;
+}
+
+.playerOverlay h5 {
+	font-size: 18px;
+}
+
+#player {
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: 0;
+}
+
 #chat {
 	height: 300px;
 	background-color: white;
-	overflow-y: auto;
+	overflow-y: scroll;
 	overflow-x: hidden;
 	padding: 0 5px;
 	padding-bottom: 10px;
@@ -36,7 +81,7 @@ body {
 	padding: 0 10px;
 	border-left: 1px solid #aaa;
 	font-family: Arial;
-	overflow-y: auto;
+	overflow-y: scroll;
 }
 
 .whisper {
@@ -63,7 +108,8 @@ body {
 	padding: 10px;
 	border: 1px solid #aaa;
 	border-top: 0;
-	overflow-y: auto;
+	overflow-y: scroll;
+	font-size: 16px;
 }
 
 button.send {
@@ -101,15 +147,39 @@ button.icon {
 #results {
 	height: 100%;
 	width: 370px;
-	/*width: 100%;*/
+	scrollbar-base-color: #222;
+	scrollbar-arrow-color: #666;
 	position: absolute;
 	top: 0;
 	left: 0;
 	transform: translateX(-100%);
 	transition: all 0.25s;
 	background: #222;
-	overflow-y: auto;
+	overflow-y: scroll;
 	z-index: 20;
+}
+
+
+#results::-webkit-scrollbar {
+	content: "";
+}
+
+#results::-webkit-scrollbar-track-piece {
+	background: #444;
+}
+
+#results::-webkit-scrollbar-track-piece:hover {
+	background: #555;
+}
+
+#results::-webkit-scrollbar-thumb {
+	margin-top: 10px;
+	border-radius: 8px;
+	background: #111;
+}
+
+#results::-webkit-scrollbar-thumb:hover {
+	background: #000;
 }
 
 .resultThumbnails {
@@ -155,7 +225,6 @@ h3 {
 	border: 1px solid #aaa;
 	border-left: 0;
 	border-bottom: 0;
-	overflow-y: auto;
 }
 
 .uiWrap span {
@@ -164,6 +233,7 @@ h3 {
 }
 
 .uiWrap .good, .uiWrap .bad, .uiWrap .skip {
+	text-shadow: 2px 2px 1px #000;
 	align-self: flex-end;
 	cursor: pointer;
 	outline: none;
@@ -176,22 +246,35 @@ h3 {
 
 .uiWrap .good {
 	background: green;
+	background: linear-gradient(to bottom, green 0%, darkgreen 100%);
 }
 
 .uiWrap .bad {
 	background: red;
+	background: linear-gradient(to bottom, red 0%, darkred 100%);
 }
 
 .uiWrap .skip {
-	background: darkblue;
+	background: blue;
+	background: linear-gradient(to bottom, blue 0%, darkblue 100%);
 }
+
+.uiWrap .good:hover {
+	background: green;
+}
+
+.uiWrap .bad:hover {
+	background: red;
+}
+
+.uiWrap .skip:hover {
+	background: blue;
+}
+
 
 .uiWrap .good:disabled, .uiWrap .bad:disabled, .uiWrap .skip:disabled  {
 	cursor: default;
-	width: 100%;
-	height: 50px;
-	background: grey;
-	font-size: 18px;
+	opacity: 0.5;
 }
 
 .cueWrap {
@@ -203,7 +286,8 @@ h3 {
 	height: 352px;
 	border: 1px solid #aaa;
 	border-left: 0;
-	overflow-y: auto;
+	overflow-y: scroll;
+
 }
 
 .cueWrap ul {
@@ -279,6 +363,28 @@ input[type="submit"]:hover {
 	border: 2px solid white;
 }
 
+#users::-webkit-scrollbar, .cueWrap::-webkit-scrollbar, #chat::-webkit-scrollbar  {
+	content: "";
+}
+
+#users::-webkit-scrollbar-track-piece, .cueWrap::-webkit-scrollbar-track-piece, #chat::-webkit-scrollbar-track-piece {
+	background: #fff;
+}
+
+#users::-webkit-scrollbar-track-piece:hover, .cueWrap::-webkit-scrollbar-track-piece:hover, #chat::-webkit-scrollbar-track-piece:hover {
+	background: #eee;
+}
+
+#users::-webkit-scrollbar-thumb, .cueWrap::-webkit-scrollbar-thumb, #chat::-webkit-scrollbar-thumb {
+	margin-top: 10px;
+	border-radius: 8px;
+	background: #ddd;
+}
+
+#users::-webkit-scrollbar-thumb:hover, .cueWrap::-webkit-scrollbar-thumb:hover, #chat::-webkit-scrollbar-thumb:hover {
+	background: #ccc;
+}
+
 .videoUi {
 	display: flex;
 	width: 720px;
@@ -302,6 +408,7 @@ input[type="submit"]:hover {
 	color: white;
 	overflow: visible;
 	transition: width 0.5s;
+	text-shadow: 2px 2px 1px #000;
 }
 
 .mute {
@@ -309,7 +416,7 @@ input[type="submit"]:hover {
 	padding-left: 4px;
 	cursor: pointer;
 	color: white;
-	background: black;
+	background: #333;
 	width: 20px;
 	height: 20px;
 }
@@ -378,10 +485,14 @@ input[type="submit"]:hover {
 	height: 20px;
 	cursor: pointer;
 	background: #333;
+	background: -webkit-linear-gradient(top, #333 0%, #333 35%, #000 35%, #000 65%, #333 65%, #333 100%); /* Chrome10-25,Safari5.1-6 */
+	background: linear-gradient(to bottom, #333 0%, #333 35%, #000 35%, #000 65%, #333 65%, #333 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
 }
 
 .volumeSlider:focus::-webkit-slider-runnable-track {
 	background: #444;
+	background: -webkit-linear-gradient(top, #444 0%, #444 35%, #000 35%, #000 65%, #444 65%, #444 100%); /* Chrome10-25,Safari5.1-6 */
+	background: linear-gradient(to bottom, #444 0%, #444 35%, #000 35%, #000 65%, #444 65%, #444 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
 }
 
 .volumeSlider::-moz-range-track {
