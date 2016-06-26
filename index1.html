@@ -238,7 +238,7 @@ var getClientIp = function() {
 		$nickBox = $('#nickname'),
 		$users = $('#users'),
 		$messageForm = $('#send-message'),
-		$messageBox = $('#message'),
+		$message = $('#message'),
 		$chat = $('#chat'),
 		$player = $('#player'),
 		$searchForm = $('#searchForm'),
@@ -272,6 +272,12 @@ var getClientIp = function() {
 
 			setTimeout(function(){ hasSkipped = false; }, 3000);
 		}
+
+		$(document).ready(function() {
+			console.log("Fired")
+			$nickBox.focus()	
+		})
+
 			// Ajax calls to YouTube API
 
 			$searchForm.submit(function(e) {
@@ -328,6 +334,7 @@ var getClientIp = function() {
 								handler();
 								$('.homeWrap').css("display", "none");
 								$('#contentWrap').css("display", "flex");
+								$('#message').focus();
 							} else {
 								$nickError.html('That username is already taken!  Try again.');
 							}
@@ -362,10 +369,10 @@ var getClientIp = function() {
 			
 			$messageForm.submit(function(e) {
 				e.preventDefault();
-				socket.emit('send message', $messageBox.val(), function(data) {
+				socket.emit('send message', $message.val(), function(data) {
 					$chat.append('<span class="error">' + data + '</span><br/>');
 				});
-				$messageBox.val('');
+				$message.val('');
 			});
 
 			var resetUi = function() {

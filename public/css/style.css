@@ -17,9 +17,15 @@ body {
 
 .playerOverlay {
 	color: white;
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: -ms-flex;
 	display: flex;
+	-webkit-flex-flow: column wrap;
 	flex-flow: column wrap;
+	-webkit-justify-content: center;
 	justify-content: center;
+	-webkit-align-items: center;
 	align-items: center;
 	width: 720px;
 	height: 390px;
@@ -68,6 +74,7 @@ body {
 	width: 720px;
 	margin: 0 auto;
 	display: none;
+	-webkit-flex-direction: column;
 	flex-direction: column;
 }
 
@@ -207,13 +214,21 @@ h3 {
 #mainWrap {
 	position: relative;
 	width: 720px;
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: -ms-flex;
 	display: flex;
 	border: 1px solid #aaa;
 }
 
 .uiWrap {
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: -ms-flex;
 	display: flex;
+	-webkit-align-items: flex-end;
 	align-items: flex-end;
+	-webkit-flex-flow: row wrap;
 	flex-flow: row wrap;
 	background: white;
 	position: absolute;
@@ -221,7 +236,6 @@ h3 {
 	top: -411px;
 	width: 400px;
 	height: 410px;
-	/*padding: 5px;*/
 	border: 1px solid #aaa;
 	border-left: 0;
 	border-bottom: 0;
@@ -234,6 +248,7 @@ h3 {
 
 .uiWrap .good, .uiWrap .bad, .uiWrap .skip {
 	text-shadow: 2px 2px 1px #000;
+	-webkit-align-self: flex-end;
 	align-self: flex-end;
 	cursor: pointer;
 	outline: none;
@@ -319,16 +334,27 @@ h3 {
 }
 
 .homeWrap {
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: -ms-flex;
 	display: flex;
+	-webkit-align-items: center;
 	align-items: center;
+	-webkit-justify-content: center;
 	justify-content: center;
 	height: 100%;
 }
 
 #nickWrap {
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: -ms-flex;
 	display: flex;
+	-webkit-flex-flow: column wrap;
 	flex-flow: column wrap;
+	-webkit-align-items: center;
 	align-items: center;
+	-webkit-justify-content: center;
 	justify-content: center;
 	background: white;
 	border-radius: 5px;
@@ -337,10 +363,16 @@ h3 {
 }
 
 #setNick {
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: -ms-flex;
 	display: flex;
+	-webkit-flex-flow: column wrap;
 	flex-flow: column wrap;
+	-webkit-align-items: center;
 	align-items: center;
-	justfy-content: center;
+	-webkit-justify-content: center;
+	justify-content: center;
 }
 
 #nickname {
@@ -386,6 +418,9 @@ input[type="submit"]:hover {
 }
 
 .videoUi {
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: -ms-flex;
 	display: flex;
 	width: 720px;
 	height: 20px;
