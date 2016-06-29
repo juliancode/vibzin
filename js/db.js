@@ -10,7 +10,8 @@ var Cue = mongoose.model('Cue', {
     },
     vibes: {
     	type: Number, default: 0 
-    }
+    },
+    channel: String
 });
 
 var User = mongoose.model('User', {
@@ -22,11 +23,36 @@ var User = mongoose.model('User', {
 		type: Number, default: 1000
 	},
 	flag: String,
-	online: Boolean
+	online: Boolean,
+	channel: String
+});
+
+var Channel = mongoose.model('Channel', {
+	id: {
+		type: String,
+		unique: true,
+	},
+	owner: String,
+	description: {
+		type: String,
+		min: 0,
+		max: 100
+	},
+	cue: [{
+	    id: String,
+	    title: String,
+	    user: {
+	    	name: String,
+	    },
+	    vibes: {
+	    	type: Number, default: 0 
+    	}
+	}]
 });
 
 module.exports = {
 	Cue,
 	User,
+	Channel
 };
 

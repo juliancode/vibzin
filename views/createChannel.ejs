@@ -1,0 +1,33 @@
+<html>
+<head>
+	<title>Vibzin.com - BETA</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" charset="utf-8">
+	<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
+	<link rel="stylesheet" href="/css/style.css">
+	<script src="http://code.jquery.com/jquery-latest.min.js"></script>
+</head>
+<body>
+<div class="flexCenter">
+		<form method="POST" class="formWrap">
+			<% if (locals.error) { %>
+			<h1 style="text-align: center; margin-bottom: 20px"><%= locals.error %></h1>
+			<% } else { %>
+			<h1 style="margin-bottom: 20px">Create Channel</h1>
+			<% } %>
+			<div style="display: flex; flex-flow: row wrap; width: 100%">
+				<label for="id">Channel Name</label>
+				<input type="text" name="id" placeholder="dnb" required="required">	
+			</div>
+			<div style="display: flex; flex-flow: row wrap; width: 100%">
+				<label for="owner">Your Name</label>
+				<input type="text" name="owner" placeholder="Alex" required="required">	
+			</div>
+			<div style="display: flex; flex-flow: row wrap; width: 100%">
+				<label for="description">Description</label>
+				<textarea name="description" placeholder="Short description about your channel, what music you expect etc" rows="4"  required="required" style="width: 100%"></textarea>
+			</div>
+			<input type="submit" value="Create">
+		</form>
+</div>
+</body>
+</html>

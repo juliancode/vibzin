@@ -5,6 +5,9 @@
 	<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/2.3.1/css/flag-icon.min.css">
 	<link rel="stylesheet" href="/css/style.css">
+	<script src="/js/react.min.js"></script>
+	<script src="/js/react-dom.min.js"></script>
+	<script src="/js/browser.min.js"></script>
 	<script src="http://code.jquery.com/jquery-latest.min.js"></script>
 </head>
 <body>
@@ -19,7 +22,6 @@
 		</form>
 	</div>
 </div>
-
 <div id="contentWrap">
 	<form id="searchForm">
 		<input type="text" id="search" autocomplete="off" placeholder="Search for a video or enter URL..."></input>
@@ -27,6 +29,19 @@
 	</form>
 	<div id="results">
 		
+	</div>
+	<div class="navContainer">
+		<a href="/">
+			<img src="/images/vibzin.png" alt="Vibzin Logo">
+		</a>
+		<nav>
+			<ul>
+				<li><a href="/create/channel">Create Channel</a></li>
+				<li><a href="">Link 2</a></li>
+				<li><a href="">Link 3</a></li>
+				<li><a href="">Link 4</a></li>
+			</ul>
+		</nav>
 	</div>
 	<div class="playerWrap">
 		<div class="playerOverlay">
@@ -36,43 +51,78 @@
 		<div id="player"></div>
 	</div>	
 	<div class="videoUi">
+		<i class="mute fa fa-volume-off" aria-hidden="true"></i>
+		<div class="volumeContainer">
+			<input type="range" name="points" min="0" max="100" class="volumeSlider" 
+			onchange="setVolume(this.value)" oninput="setVolume(this.value)">
+		</div>
 		<div class="progressWrap">
 			<div class="progress">	
 			</div>
 		</div>
-		<i class="mute fa fa-volume-off" aria-hidden="true"></i>
-		<input type="range" name="points" min="0" max="100" class="volumeSlider" 
-		onchange="setVolume(this.value)" oninput="setVolume(this.value)">
+	</div>
+	<div class="buttonWrap">
+		<input type="button" value="Good Vibe +1" class="good">
+		<input type="button" value="Bad Vibe -1" class="bad">
+		<input type="button" value="Skip" class="skip">
+	</div>
+	<div class="cueWrap">
+		<ul id="cue">
+		</ul>
 	</div>
 	<div id="mainWrap">
-		<div id="chatWrap">
-			<div id="chat"></div>
-		</div>
+		<% if (locals.id) { %>
+		<h3 class="channelTitle">#<%= locals.id %> (created by <%= locals.owner %>)</h3>
+		<% } else { %>
+		<h3 class="channelTitle">This channel isn't registered</h3>
+		<% } %>
+		<% if (locals.description) { %>
+		<p><%= locals.description %></p>
+		<% } else { %>
+		<p>Welcome to the chat</p>
+		<% } %>
+		<div id="chat"></div>
 		<div id="users">
 		</div>
-		<div class="uiWrap">
-			<span>&nbsp;</span>
-			<input type="button" value="Good Vibe +1" class="good">
-			<input type="button" value="Bad Vibe -1" class="bad">
-			<input type="button" value="Skip" class="skip">
-		</div>
-		<div class="cueWrap">
-			<ul id="cue">
-			</ul>
-		</div>
+		<!-- <div class="uiWrap">
+			<p class="channelDesc"><%= locals.description %></p>
+		</div> -->
+		<form id="send-message" autocomplete="off">
+			<input size="35" id="message" placeholder="Send a message"></input>
+			<button class="send">Send</button>
+		</form>
 	</div>
-	<form id="send-message" autocomplete="off">
-		<input size="35" id="message" placeholder="Enter message..."></input>
-		<button class="send">Send</button>
-	</form>
 </div>
+
+<!-- <script type="text/babel">
+
+var Skip = React.createClass({
+	
+	getInitialState: function() {
+		return {skips: 0, peopleNeededToSkip: Math.round(users.length / 2)}
+	},
+
+	skip: function() {
+		this.setState({skips: this.state.skips +1});
+	},
+
+	render: function() {
+		return (
+			<button className="skip" onClick={this.skip}>{this.state.skips} / {this.state.peopleNeededToSkip}</button>
+		)
+	}});	
+
+ReactDOM.render(<Skip />, document.querySelector('.buttonWrap'))
+
+</script> -->
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
 var skipped = 0,
-hasSkipped = false,
+// hasSkipped = false,
 vibeFired = false,
-socket = io.connect();
+socket = io.connect(),
+room = window.location.pathname.substring(1)
 
 // Code for loading YouTUbe API asynchronously
 
@@ -138,16 +188,16 @@ function onPlayerStateChange(event) {
 			resetUi();
 			// $chat.append(cue.title[0] + " has finished " + cue.user.name[0] + " received *vibes* " + "new rating is " + cue.user.vibes[0] + "</br>")
 			// $chat.scrollTop(document.getElementById("chat").scrollHeight);
-			socket.emit('play next video')
+			socket.emit('play next video', {room: room})
 			break;
 		case 1:
 			console.log("play")
-			socket.emit('play video')
+			socket.emit('play video', {room: room})
 			requestAnimationFrame(paintProgress)
 			break;
 		case 2:
 			console.log("pause")
-			socket.emit('pause video')
+			socket.emit('pause video', {room: room})
 			break;
 		case 3:
 			console.log("buffering")
@@ -192,7 +242,7 @@ function paintProgress() {
 	}
 
 	function progressWidth() {
-		return Math.round((520/100) * ((getCurrentTime() / getVideoDuration())*100))
+		return Math.round((590/100) * ((getCurrentTime() / getVideoDuration())*100))
 		// Percentage code, janky..
 		// return (getCurrentTime() / getVideoDuration())*100
 	}
@@ -279,7 +329,8 @@ var getClientIp = function() {
 
 		$(document).ready(function() {
 			console.log("Fired")
-			$nickBox.focus()	
+			$nickBox.focus()
+			socket.emit('join room', room)	
 		})
 
 			// Ajax calls to YouTube API
@@ -319,7 +370,7 @@ var getClientIp = function() {
 			$results.on('click', '.resultContainer', function() {
 				var videoId = this.id,
 					videoTitle = this.title;
-				socket.emit('new video', {id: videoId, title: videoTitle});
+				socket.emit('new video', {id: videoId, title: videoTitle, room: room});
 				$("#search").val("");				
 				$results.css("transform", "translateX(-100%)");
 			});
@@ -333,7 +384,7 @@ var getClientIp = function() {
 					.then(function() {
 						var nick = $nickBox.val();
 						console.log(nick)
-						socket.emit('new user', {nick: nick, flag: country}, function(data) {
+						socket.emit('new user', {nick: nick, flag: country, room: room}, function(data) {
 							if (data) {
 								handler();
 								$('.homeWrap').css("display", "none");
@@ -362,6 +413,7 @@ var getClientIp = function() {
 			});			
 			
 			socket.on('send users', function(data) {
+				console.log(data)
 				users = data
 				$skip.val("Skip (" + skipped + "/" + Math.round(users.length / 2) + ")");
 				var html = ""
@@ -373,7 +425,7 @@ var getClientIp = function() {
 			
 			$messageForm.submit(function(e) {
 				e.preventDefault();
-				socket.emit('send message', $message.val(), function(data) {
+				socket.emit('send message', {msg: $message.val(), room: room}, function(data) {
 					$chat.append('<span class="error">' + data + '</span><br/>');
 				});
 				$message.val('');
@@ -409,7 +461,7 @@ var getClientIp = function() {
 					disableVibeButtons()
 					$chat.append('<span class="whisper">You gave <b>' + cue[0].user.name + ' +1 vibe</b>  for this song</span></br>')
 					$chat.scrollTop(document.getElementById("chat").scrollHeight);
-					socket.emit('good vibe', cue[0].user.name);
+					socket.emit('good vibe', {user: cue[0].user.name, room: room});
 				}
 			})
 
@@ -418,7 +470,7 @@ var getClientIp = function() {
 					disableVibeButtons()
 					$chat.append('<span class="whisper">You gave <b>' + cue[0].user.name + ' -1 vibe</b>  for this song</span></br>')
 					$chat.scrollTop(document.getElementById("chat").scrollHeight);
-					socket.emit('bad vibe', cue[0].user.name);
+					socket.emit('bad vibe', {user: cue[0].user.name, room: room});
 				}
 			})
 
@@ -427,7 +479,7 @@ var getClientIp = function() {
 					console.log("not hasSkipped")
 					$(this).attr("disabled", true);
 					skipped++;
-					socket.emit('vote skip', {skipvotes: skipped});
+					socket.emit('vote skip', {skipvotes: skipped, room: room});
 				}
 				if (hasSkipped) {
 					$chat.append('<span class="error whisper">You can\'t skip so soon please wait!</span></br>')
@@ -449,7 +501,7 @@ var getClientIp = function() {
 					resetUi();
 					// $chat.append(cue.title[0] + " has finished " + cue.user.name[0] + " received *vibes* " + "new rating is ...</br>")
 					// $chat.scrollTop(document.getElementById("chat").scrollHeight);
-					socket.emit('play next video');
+					socket.emit('play next video', {room: room});
 				} else {
 					skipped = data.skipvotes
 					$skip.val("Skip (" + skipped + "/" + Math.round(users.length / 2) + ")");

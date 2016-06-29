@@ -19,7 +19,6 @@ body {
 .playerWrap {
 	width: 720px;
 	height: 390px;
-	margin-top: 20px;
 	position: relative;
 }
 
@@ -61,52 +60,6 @@ body {
 	font-size: 18px;
 }
 
-.navContainer {
-	width: 400px;
-	height: 100%;
-	/*background: #333;*/
-	/*background: linear-gradient(to bottom, #000, #111);*/
-	background: #fff;
-	position: fixed;
-	left: 0;
-	top: 0;
-	border-right: 1px solid #aaa;
-}
-				
-.navContainer a img {
-	display: block;
-	width: 300px;
-	text-align: center;
-	margin: 10px auto;
-	height: auto;
-}
-
-.navContainer nav {
-	display: flex;
-}
-
-.navContainer nav ul { 
-	list-style-type: none;
-	width: 100%;
-}
-
-.navContainer nav ul li {
-	width: 100%;
-}
-
-.navContainer nav ul li a {
-	display: block;
-	width: 100%;
-	padding: 20px;
-	color: #000;
-	font-size: 18px;
-	text-decoration: none;
-}
-
-.navContainer nav ul li a:hover {
-	background: #ffa100;
-}
-
 #player {
 	position: absolute;
 	top: 0;
@@ -115,7 +68,7 @@ body {
 }
 
 #chat {
-	height: calc(100% - 150px);
+	height: 300px;
 	background-color: white;
 	overflow-y: auto;
 	overflow-x: hidden;
@@ -127,13 +80,16 @@ body {
 #contentWrap {
 	width: 720px;
 	margin: 0 auto;
-	display: none;
+	/*display: none;*/
 	-webkit-flex-direction: column;
 	flex-direction: column;
 }
 
+#chatWrap {
+	width: 520px;
+}
+
 #users {
-	display: none;
 	width: 200px;
 	background-color: white;
 	padding: 0 10px;
@@ -156,21 +112,16 @@ body {
 }
 
 #send-message {
-	position: absolute;
-	bottom: 0;
-	right: 0;
-	width: 400px;
-	display: flex;
+	overflow: hidden;
 	white-space: nowrap;
-	height: 50px;
 }
 
 #message {
-	width: 300px;
+	width: 720px;
 	height: 50px;
 	padding: 10px;
 	border: 1px solid #aaa;
-	border-right: 0;
+	border-top: 0;
 	overflow-y: auto;
 	font-size: 16px;
 }
@@ -178,6 +129,7 @@ body {
 button.send {
 	height: 50px;
 	width: 100px;
+	margin-left: -104px;
 }
 
 #search {
@@ -267,24 +219,17 @@ button.icon {
 }
 
 #mainWrap {
-	position: fixed;
-	background: #fff;
-	top: 0;
-	right: 0;
-	width: 400px;
-	height: 100%;
-	z-index: 500;
-	border-left: 1px solid #aaa;
-}
-
-#mainWrap p {
-	height: 25px;
-	margin: 10px 0px 10px 10px;
+	position: relative;
+	width: 720px;
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: -ms-flex;
+	display: flex;
+	border: 1px solid #aaa;
 }
 
 .channelTitle {
-	height: 50px;
-	padding: 20px;
+	padding: 10px;
 }
 
 .channelDesc {
@@ -351,7 +296,7 @@ button.icon {
 	height: 259px;
 }
 
-.good, .bad, .skip {
+.uiWrap .good, .uiWrap .bad, .uiWrap .skip {
 	text-shadow: 2px 2px 1px #000;
 	-webkit-align-self: flex-end;
 	align-self: flex-end;
@@ -359,55 +304,56 @@ button.icon {
 	outline: none;
 	border: 0;
 	color: white;
-	width: 240px;
+	width: 100%;
 	height: 50px;
 	font-size: 18px;
 }
 
-.good {
+.uiWrap .good {
 	background: green;
 	background: linear-gradient(to bottom, green 0%, darkgreen 100%);
 }
 
-.bad {
+.uiWrap .bad {
 	background: red;
 	background: linear-gradient(to bottom, red 0%, darkred 100%);
 }
 
-.skip {
+.uiWrap .skip {
 	background: blue;
 	background: linear-gradient(to bottom, blue 0%, darkblue 100%);
 }
 
-.good:enabled:hover {
+.uiWrap .good:enabled:hover {
 	background: green;
 }
 
-.bad:enabled:hover {
+.uiWrap .bad:enabled:hover {
 	background: red;
 }
 
-.skip:enabled:hover {
+.uiWrap .skip:enabled:hover {
 	background: blue;
 }
 
-.good:disabled, .bad:disabled, .skip:disabled  {
+.uiWrap .good:disabled, .uiWrap .bad:disabled, .uiWrap .skip:disabled  {
 	cursor: default;
 	opacity: 0.5;
 }
 
 .buttonWrap {
-	display: flex;
+	margin-top: auto;
 }
 
 .cueWrap {
 	background: white;
-/*	position: absolute;
+	position: absolute;
 	left: 719px;
-	top: -1px;*/
-	width: 720px;
+	top: -1px;
+	width: 400px;
 	height: 352px;
 	border: 1px solid #aaa;
+	border-left: 0;
 	overflow-y: auto;
 
 }
@@ -457,6 +403,7 @@ button.icon {
 	display: -webkit-flex;
 	display: -ms-flex;
 	display: flex;
+	display: none;
 	-webkit-flex-flow: column wrap;
 	flex-flow: column wrap;
 	-webkit-align-items: center;
@@ -533,25 +480,10 @@ input[type="submit"]:hover {
 	height: 20px;
 }
 
-.videoUi .mute {
-	font-size: 20px;
-	padding-left: 4px;
-	cursor: pointer;
-	color: white;
-	background: #333;
-	width: 20px;
-	height: 20px;
-}
-
-.videoUi .volumeContainer {
-	background: #333;
-	padding: 0px 5px;
-}
-
 .progressWrap {
 	display: inline-block;
-	width: 590px;
-	height: 20px;;
+	width: 520px;
+	height: 20px;
 	background: darkred;
 	position: relative;
 }
@@ -568,6 +500,16 @@ input[type="submit"]:hover {
 	text-shadow: 2px 2px 1px #000;
 }
 
+.mute {
+	font-size: 20px;
+	padding-left: 4px;
+	cursor: pointer;
+	color: white;
+	background: #333;
+	width: 20px;
+	height: 20px;
+}
+
 /* Reset styles to hide default input range across all browsers */
 
 .volumeSlider {
@@ -576,7 +518,7 @@ input[type="submit"]:hover {
 	display: inline-block;
 	margin: 0;
 	padding: 0;
-	width: 100px;
+	width: 180px;
 }
 
 .volumeSlider::-webkit-slider-thumb {
@@ -601,9 +543,8 @@ input[type="submit"]:hover {
 
 .volumeSlider::-webkit-slider-thumb {
 	height: 20px;
-	width: 20px;
+	width: 10px;
 	background: darkred;
-	border-radius: 50%;
 	cursor: pointer;
 	margin-top: 0px; /* You need to specify a margin in Chrome, but in Firefox and IE it is automatic */
 }
@@ -637,6 +578,12 @@ input[type="submit"]:hover {
 	background: linear-gradient(to bottom, #333 0%, #333 35%, #000 35%, #000 65%, #333 65%, #333 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
 }
 
+.volumeSlider:focus::-webkit-slider-runnable-track {
+	background: #444;
+	background: -webkit-linear-gradient(top, #444 0%, #444 35%, #000 35%, #000 65%, #444 65%, #444 100%); /* Chrome10-25,Safari5.1-6 */
+	background: linear-gradient(to bottom, #444 0%, #444 35%, #000 35%, #000 65%, #444 65%, #444 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+}
+
 .volumeSlider::-moz-range-track {
 	width: 100%;
 	height: 20px;
@@ -650,3 +597,5 @@ input[type="submit"]:hover {
 	cursor: pointer;
 	background: #333;
 }
+
+

@@ -19,7 +19,6 @@
 		</form>
 	</div>
 </div>
-
 <div id="contentWrap">
 	<form id="searchForm">
 		<input type="text" id="search" autocomplete="off" placeholder="Search for a video or enter URL..."></input>
@@ -51,10 +50,13 @@
 		<div id="users">
 		</div>
 		<div class="uiWrap">
-			<span>&nbsp;</span>
-			<input type="button" value="Good Vibe +1" class="good">
-			<input type="button" value="Bad Vibe -1" class="bad">
-			<input type="button" value="Skip" class="skip">
+			<h3 class="channelTitle">#<%= locals.id %></h3>
+			<p class="channelDesc"><%= locals.description %></p>
+			<div class="buttonWrap">
+				<input type="button" value="Good Vibe +1" class="good">
+				<input type="button" value="Bad Vibe -1" class="bad">
+				<input type="button" value="Skip" class="skip">
+			</div>
 		</div>
 		<div class="cueWrap">
 			<ul id="cue">
@@ -62,7 +64,7 @@
 		</div>
 	</div>
 	<form id="send-message" autocomplete="off">
-		<input size="35" id="message" placeholder="Enter message..."></input>
+		<input size="35" id="message" placeholder="Send a message"></input>
 		<button class="send">Send</button>
 	</form>
 </div>
@@ -72,7 +74,8 @@
 var skipped = 0,
 hasSkipped = false,
 vibeFired = false,
-socket = io.connect();
+socket = io.connect(),
+room = window.location.pathname.substring(1)
 
 // Code for loading YouTUbe API asynchronously
 
@@ -138,16 +141,16 @@ function onPlayerStateChange(event) {
 			resetUi();
 			// $chat.append(cue.title[0] + " has finished " + cue.user.name[0] + " received *vibes* " + "new rating is " + cue.user.vibes[0] + "</br>")
 			// $chat.scrollTop(document.getElementById("chat").scrollHeight);
-			socket.emit('play next video')
+			socket.emit('play next video', {room: room})
 			break;
 		case 1:
 			console.log("play")
-			socket.emit('play video')
+			socket.emit('play video', {room: room})
 			requestAnimationFrame(paintProgress)
 			break;
 		case 2:
 			console.log("pause")
-			socket.emit('pause video')
+			socket.emit('pause video', {room: room})
 			break;
 		case 3:
 			console.log("buffering")
@@ -279,7 +282,8 @@ var getClientIp = function() {
 
 		$(document).ready(function() {
 			console.log("Fired")
-			$nickBox.focus()	
+			$nickBox.focus()
+			socket.emit('join room', room)	
 		})
 
 			// Ajax calls to YouTube API
@@ -319,7 +323,7 @@ var getClientIp = function() {
 			$results.on('click', '.resultContainer', function() {
 				var videoId = this.id,
 					videoTitle = this.title;
-				socket.emit('new video', {id: videoId, title: videoTitle});
+				socket.emit('new video', {id: videoId, title: videoTitle, room: room});
 				$("#search").val("");				
 				$results.css("transform", "translateX(-100%)");
 			});
@@ -333,7 +337,7 @@ var getClientIp = function() {
 					.then(function() {
 						var nick = $nickBox.val();
 						console.log(nick)
-						socket.emit('new user', {nick: nick, flag: country}, function(data) {
+						socket.emit('new user', {nick: nick, flag: country, room: room}, function(data) {
 							if (data) {
 								handler();
 								$('.homeWrap').css("display", "none");
@@ -362,6 +366,7 @@ var getClientIp = function() {
 			});			
 			
 			socket.on('send users', function(data) {
+				console.log(data)
 				users = data
 				$skip.val("Skip (" + skipped + "/" + Math.round(users.length / 2) + ")");
 				var html = ""
@@ -373,7 +378,7 @@ var getClientIp = function() {
 			
 			$messageForm.submit(function(e) {
 				e.preventDefault();
-				socket.emit('send message', $message.val(), function(data) {
+				socket.emit('send message', {msg: $message.val(), room: room}, function(data) {
 					$chat.append('<span class="error">' + data + '</span><br/>');
 				});
 				$message.val('');
@@ -409,7 +414,7 @@ var getClientIp = function() {
 					disableVibeButtons()
 					$chat.append('<span class="whisper">You gave <b>' + cue[0].user.name + ' +1 vibe</b>  for this song</span></br>')
 					$chat.scrollTop(document.getElementById("chat").scrollHeight);
-					socket.emit('good vibe', cue[0].user.name);
+					socket.emit('good vibe', {user: cue[0].user.name, room: room});
 				}
 			})
 
@@ -418,7 +423,7 @@ var getClientIp = function() {
 					disableVibeButtons()
 					$chat.append('<span class="whisper">You gave <b>' + cue[0].user.name + ' -1 vibe</b>  for this song</span></br>')
 					$chat.scrollTop(document.getElementById("chat").scrollHeight);
-					socket.emit('bad vibe', cue[0].user.name);
+					socket.emit('bad vibe', {user: cue[0].user.name, room: room});
 				}
 			})
 
@@ -427,7 +432,7 @@ var getClientIp = function() {
 					console.log("not hasSkipped")
 					$(this).attr("disabled", true);
 					skipped++;
-					socket.emit('vote skip', {skipvotes: skipped});
+					socket.emit('vote skip', {skipvotes: skipped, room: room});
 				}
 				if (hasSkipped) {
 					$chat.append('<span class="error whisper">You can\'t skip so soon please wait!</span></br>')
@@ -449,7 +454,7 @@ var getClientIp = function() {
 					resetUi();
 					// $chat.append(cue.title[0] + " has finished " + cue.user.name[0] + " received *vibes* " + "new rating is ...</br>")
 					// $chat.scrollTop(document.getElementById("chat").scrollHeight);
-					socket.emit('play next video');
+					socket.emit('play next video', {room: room});
 				} else {
 					skipped = data.skipvotes
 					$skip.val("Skip (" + skipped + "/" + Math.round(users.length / 2) + ")");
