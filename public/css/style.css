@@ -17,7 +17,7 @@ body {
 }
 
 .playerWrap {
-	width: 720px;
+	width: 100%;
 	height: 390px;
 	margin-top: 20px;
 	position: relative;
@@ -35,7 +35,7 @@ body {
 	justify-content: center;
 	-webkit-align-items: center;
 	align-items: center;
-	width: 720px;
+	width: 100%;
 	height: 390px;
 	position: absolute;
 	top: 0;
@@ -50,14 +50,17 @@ body {
 }
 
 .playerOverlay h3, .playerOverlay h5 {
+	text-align: center;
 	text-shadow: 2px 2px 1px #000;
 }
 
 .playerOverlay h3 {
+	padding: 10px;
 	font-size: 22px;
 }
 
 .playerOverlay h5 {
+	padding: 10px;
 	font-size: 18px;
 }
 
@@ -71,11 +74,12 @@ body {
 	left: 0;
 	top: 0;
 	border-right: 1px solid #aaa;
+	transition: all 0.2s ease-in;
 }
 				
 .navContainer a img {
 	display: block;
-	width: 300px;
+	width: 75%;
 	text-align: center;
 	margin: 10px auto;
 	height: auto;
@@ -83,6 +87,7 @@ body {
 
 .navContainer nav {
 	display: flex;
+	width: 100%;
 }
 
 .navContainer nav ul { 
@@ -107,7 +112,39 @@ body {
 	background: #ffa100;
 }
 
+.openNav, .closeNav {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	width: 20px;
+	height: 100px;
+	cursor: pointer;
+	background: #fff;
+	position: absolute;
+	left: 100%;
+	top: 0;
+	border: 1px solid #aaa;
+	border-top: 0;
+}
+
+.openChat, .closeChat {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	width: 20px;
+	height: 100px;
+	cursor: pointer;
+	background: #fff;
+	position: absolute;
+	right: 100%;
+	top: 0;
+	border: 1px solid #aaa;
+	border-top: 0;
+}
+
 #player {
+	width: 100%;
+	height: 100%;
 	position: absolute;
 	top: 0;
 	left: 0;
@@ -115,6 +152,7 @@ body {
 }
 
 #chat {
+	width: 100%;
 	height: calc(100% - 150px);
 	background-color: white;
 	overflow-y: auto;
@@ -159,14 +197,14 @@ body {
 	position: absolute;
 	bottom: 0;
 	right: 0;
-	width: 400px;
+	width: 100%;
 	display: flex;
 	white-space: nowrap;
 	height: 50px;
 }
 
 #message {
-	width: 300px;
+	width: 75%;
 	height: 50px;
 	padding: 10px;
 	border: 1px solid #aaa;
@@ -177,11 +215,11 @@ body {
 
 button.send {
 	height: 50px;
-	width: 100px;
+	width: 25%;
 }
 
 #search {
-	width: 720px;
+	width: 100%;
 	height: 50px;
 	padding: 15px;
 	font-size: 17pt;
@@ -189,7 +227,7 @@ button.send {
 }
 
 #searchForm {
-	width: 720px;
+	width: 100%;
 	overflow: hidden;
 	margin: 10px 0;
 	white-space: nowrap;
@@ -259,6 +297,18 @@ button.icon {
 	background: #444;
 }
 
+div.error { 
+	width: 100%;
+	padding: 20px;
+	position: absolute;
+	top: 0;
+	left: 0;
+	color: #fff;
+	z-index: 50;
+	background: darkred;
+	text-align: center;
+}
+
 #results h3 {
 	font-family: Arial, sans;
 	color: #fff;
@@ -275,6 +325,7 @@ button.icon {
 	height: 100%;
 	z-index: 500;
 	border-left: 1px solid #aaa;
+	transition: all 0.2s ease-in;
 }
 
 #mainWrap p {
@@ -405,7 +456,7 @@ button.icon {
 /*	position: absolute;
 	left: 719px;
 	top: -1px;*/
-	width: 720px;
+	width: 100%;
 	height: 352px;
 	border: 1px solid #aaa;
 	overflow-y: auto;
@@ -529,7 +580,7 @@ input[type="submit"]:hover {
 	display: -webkit-flex;
 	display: -ms-flex;
 	display: flex;
-	width: 720px;
+	width: 100%;
 	height: 20px;
 }
 
@@ -650,3 +701,69 @@ input[type="submit"]:hover {
 	cursor: pointer;
 	background: #333;
 }
+
+/* Media Queries */
+
+@media screen and (max-width: 1600px) {
+	#contentWrap {
+		width: 540px;
+	}
+	.navContainer {
+		width: 300px;
+	}
+	#mainWrap {
+		width: 300px;
+	}
+	.good, .bad, .skip {
+		width: 180px;
+	}
+}
+
+@media screen and (max-width: 1200px) {
+	#contentWrap {
+		width: 360px;
+	}
+	.navContainer {
+		width: 200px;
+	}
+	#mainWrap {
+		width: 200px;
+	}
+	.good, .bad, .skip {
+		width: 120px;
+	}
+}
+
+@media screen and (max-width: 800px) {
+	#contentWrap {
+		width: 300px;
+	}
+	.navContainer {
+		width: 100px;
+	}
+	#mainWrap {
+		width: 100px;
+	}
+	.good, .bad, .skip {
+		width: 100px;
+	}
+}
+
+@media screen and (max-width: 550px) {
+	#contentWrap {
+		width: 225px;
+	}
+	.navContainer {
+		width: 75px;
+	}
+	#mainWrap {
+		width: 75px;
+	}
+	.good, .bad, .skip {
+		width: 75px;
+	}
+}
+
+
+
+

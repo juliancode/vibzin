@@ -42,6 +42,9 @@
 				<li><a href="">Link 4</a></li>
 			</ul>
 		</nav>
+		<div class="closeNav">
+			<i class="fa fa-angle-double-left" aria-hidden="true"></i>
+		</div>
 	</div>
 	<div class="playerWrap">
 		<div class="playerOverlay">
@@ -91,6 +94,9 @@
 			<input size="35" id="message" placeholder="Send a message"></input>
 			<button class="send">Send</button>
 		</form>
+		<div class="closeChat">
+			<i class="fa fa-angle-double-right" aria-hidden="true"></i>
+		</div>
 	</div>
 </div>
 
@@ -152,8 +158,8 @@ function onYouTubeIframeAPIReady() {
 		id = cue[0].id // If theres a cue start the player with the first item in cue
 
 		player = new YT.Player('player', {
-			height: '390',
-			width: '720',
+			// height: '390',
+			// width: '720',
 			videoId: id,
 			playerVars: {
 				controls: 0,
@@ -250,10 +256,10 @@ function paintProgress() {
 	document.querySelector('.progress').setAttribute("style", "width:" + progressWidth() +"px"); // Animates progress bar
 
 	document.querySelector('.progress').innerText = 
-	"(" + minutes(Math.round(getCurrentTime()))  // Minutes played of current video
+	"\xA0\xA0(" + minutes(Math.round(getCurrentTime()))  // Minutes played of current video
 	+ ":" + seconds(Math.round(getCurrentTime()))  // Seconds played of current video
 	+ "\xA0/\xA0" + minutes(Math.round(getVideoDuration()))  // Minutes in total of current video
-	+ ":" + seconds(Math.round(getVideoDuration())) + ")"; // Seconds in total of current video
+	+ ":" + seconds(Math.round(getVideoDuration())) + ")\xA0\xA0"; // Seconds in total of current video
 
 	requestAnimationFrame(paintProgress)
 }
@@ -355,6 +361,36 @@ var getClientIp = function() {
 					});
 				})
 			});
+
+			$(".navContainer").on('click', '.closeNav', function() {
+				$(this).addClass("openNav");
+				$(this).removeClass("closeNav");
+				$(this).parent().css("transform", "translateX(-100%");
+				$(this).children().removeClass("fa-angle-double-left").addClass("fa-angle-double-right");
+			});
+
+			$(".navContainer").on('click', '.openNav', function() {
+				$(this).addClass("closeNav");
+				$(this).removeClass("openNav");
+				$(this).parent().css("transform", "translateX(0%");
+				$(this).children().removeClass("fa-angle-double-right").addClass("fa-angle-double-left");
+			});
+
+			$("#mainWrap").on('click', '.closeChat', function() {
+				$(this).addClass("openChat");
+				$(this).removeClass("closeChat");
+				$(this).parent().css("transform", "translateX(100%");
+				$(this).children().removeClass("fa-angle-double-right").addClass("fa-angle-double-left");
+			});
+
+			$("#mainWrap").on('click', '.openChat', function() {
+				$(this).addClass("closeChat");
+				$(this).removeClass("openChat");
+				$(this).parent().css("transform", "translateX(0%");
+				$(this).children().removeClass("fa-angle-double-left").addClass("fa-angle-double-right");
+			});
+
+
 
 			// Possibly bad performance having event handler on whole document - change?
 

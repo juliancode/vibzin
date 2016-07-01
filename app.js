@@ -42,19 +42,30 @@ app.get('/create/channel', function(req, res) {
 });
 
 app.post('/create/channel', function(req, res) {
-	return getChannel(req.body.id)
-	.then(function(channel) {
-		if (channel) {
-			res.render(__dirname + '/views/createChannel.ejs', {
-					error: "Sorry that channel exists"
+	var regex = /^[a-z0-9_-]*$/;
+	patt = new RegExp(regex);
+	var result = patt.test(req.body.id) 
+
+	if (result) {
+		return getChannel(req.body.id)
+		.then(function(channel) {
+			if (channel) {
+				res.render(__dirname + '/views/createChannel.ejs', {
+						error: "Sorry that channel exists"
+					})
+			} else {
+				return addChannel(req.body.id, req.body.owner, req.body.description)
+				.then(function() {
+					res.redirect('/' + req.body.id)
 				})
-		} else {
-			return addChannel(req.body.id, req.body.owner, req.body.description)
-			.then(function() {
-				res.redirect('/' + req.body.id)
-			})
-		}
-	})
+			}
+		})
+	} else {
+		res.render(__dirname + '/views/createChannel.ejs', {
+			error: "Channel names can only contain lowercase letters, numbers, - and _"
+		})
+	}
+
 });
 
 app.use(express.static('public'));
