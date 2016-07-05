@@ -36,10 +36,34 @@
 		</a>
 		<nav>
 			<ul>
-				<li><a href="/create/channel">Create Channel</a></li>
-				<li><a href="">Link 2</a></li>
-				<li><a href="">Link 3</a></li>
-				<li><a href="">Link 4</a></li>
+				<li>
+					<a href="#" class="primary">Channels <i class="fa fa-plus" aria-hidden="true"></i></a>
+					<ul class="secondary">
+						<li><a href="/create/channel">Create Channel</a></li>
+						<li><a href="#">Most Popular</a></li>
+					</ul>
+				</li>
+				<li>
+					<a href="#" class="primary">Link 2 <i class="fa fa-plus" aria-hidden="true"></i></a>
+					<ul class="secondary">
+						<li><a href="#">Secondary Link 1</a></li>
+						<li><a href="#">Secondary Link 2</a></li>
+					</ul>
+				</li>
+				<li>
+					<a href="#" class="primary">Link 3 <i class="fa fa-plus" aria-hidden="true"></i></a>
+					<ul class="secondary">
+						<li><a href="#">Secondary Link 1</a></li>
+						<li><a href="#">Secondary Link 2</a></li>
+					</ul>
+				</li>
+				<li>
+					<a href="#" class="primary">Link 4 <i class="fa fa-plus" aria-hidden="true"></i></a>
+					<ul class="secondary">
+						<li><a href="#">Secondary Link 1</a></li>
+						<li><a href="#">Secondary Link 2</a></li>
+					</ul>
+				</li>
 			</ul>
 		</nav>
 		<div class="closeNav">
@@ -490,6 +514,11 @@ var getClientIp = function() {
 					setVolume(0)
 					$('.mute').removeClass('fa-volume-down').addClass('fa-volume-off')
 				}
+			})
+
+			$('.primary').click(function() {
+				$(this).siblings().toggleClass("open")
+				$(this).children().toggleClass("fa-plus", true).toggleClass("fa-minus")
 			})
 
 			$good.click(function() {

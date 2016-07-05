@@ -73,7 +73,9 @@ app.use(express.static('public'));
 // Start of Socket code
 
 io.on('connection', function(socket) {
+	var currentRoom;
 	socket.on('join room', function(data) {
+		currentRoom = data;
 		socket.join(data)
 		getCue(data)
 		.then(function(cue) {
@@ -137,12 +139,11 @@ io.on('connection', function(socket) {
 		}
 		else {
 			return userOffline(socket.nickname)
-			// return removeUser(socket.nickname)
 			.then(function() {
-				return getUsersOnline(data.room)
+				return getUsersOnline(currentRoom)
 				.then(function(usersOnline) {
-					socket.broadcast.to(data.room).emit('user leave', {nick: socket.nickname});
-	        		io.sockets.in(data.room).emit('send users', usersOnline);
+					socket.broadcast.to(currentRoom).emit('user leave', {nick: socket.nickname});
+	        		io.sockets.in(currentRoom).emit('send users', usersOnline);
 				})
 				.catch(function(e) {
 				console.log("Error", e, e.stack)
@@ -191,7 +192,7 @@ io.on('connection', function(socket) {
 		hasChangedVideo = true;
 		setTimeout(function() {
 			hasChangedVideo = false;
-		}, 200);
+		}, 400);
 
 		getCue(data.room)
 		// if cue.length is TRUE removeFromCue else if FALSE return cue
@@ -379,13 +380,10 @@ io.on('connection', function(socket) {
 		console.log("getCue")
 		return new Promise(function(resolve, reject) {
 			Cue.find({ channel: channel }).exec(function(err, videos) {
-				if (err) {
+				if (err)
 					reject(err);
-				} else {
-					// io.sockets.in(channel).emit('send cue', videos); NEED TO DO THIS ELSEWHERE
-					console.log(videos)
+				else 
 					resolve(videos);
-				}
 			})
 		})
 	}
