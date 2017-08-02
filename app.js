@@ -72,7 +72,7 @@ app.use(express.static('public'));
 
 // Start of Socket code
 
-function onJoinRoom(data) {
+function handleJoinRoom(data) {
 	currentRoom = data;
 	socket.join(data)
 	getCue(data)
@@ -86,7 +86,7 @@ function onJoinRoom(data) {
 
 io.on('connection', function(socket) {
 	var currentRoom;
-	socket.on('join room', onJoinRoom)
+	socket.on('join room', handleJoinRoom)
 
 	socket.on('new user', function(data, callback) {
 			console.log("New user")
