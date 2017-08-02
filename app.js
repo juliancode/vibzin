@@ -72,19 +72,21 @@ app.use(express.static('public'));
 
 // Start of Socket code
 
-io.on('connection', function(socket) {
-	var currentRoom;
-	socket.on('join room', function(data) {
-		currentRoom = data;
-		socket.join(data)
-		getCue(data)
+function onJoinRoom(data) {
+	currentRoom = data;
+	socket.join(data)
+	getCue(data)
 		.then(function(cue) {
 			io.sockets.in(data).emit('send cue', cue);
 		})
 		.catch(function(err) {
 			console.log("Error", err)
 		})
-	})
+}
+
+io.on('connection', function(socket) {
+	var currentRoom;
+	socket.on('join room', onJoinRoom)
 
 	socket.on('new user', function(data, callback) {
 			console.log("New user")
