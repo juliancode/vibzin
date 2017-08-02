@@ -72,21 +72,23 @@ app.use(express.static('public'));
 
 // Start of Socket code
 
-function handleJoinRoom(data) {
-	currentRoom = data;
-	socket.join(data)
-	getCue(data)
-		.then(function(cue) {
-			io.sockets.in(data).emit('send cue', cue);
-		})
-		.catch(function(err) {
-			console.log("Error", err)
-		})
+function joinRoomListener(socket, currentRoom) {
+	socket.on('join room', function(data) {
+		currentRoom = data;
+		socket.join(data)
+		getCue(data)
+			.then(function(cue) {
+				io.sockets.in(data).emit('send cue', cue);
+			})
+			.catch(function(err) {
+				console.log("Error", err)
+			})	
+	})
 }
 
 io.on('connection', function(socket) {
 	var currentRoom;
-	socket.on('join room', handleJoinRoom)
+	joinRoomListener(socket, currentRoom)
 
 	socket.on('new user', function(data, callback) {
 			console.log("New user")
